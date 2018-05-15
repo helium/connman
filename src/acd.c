@@ -96,7 +96,7 @@ static gboolean acd_announce_timeout(gpointer acd_data);
 static gboolean acd_defend_timeout(gpointer acd_data);
 
 /* for D-Bus property */
-static void report_conflict(struct acd_host *acd);
+static void report_conflict(struct acd_host *acd, const struct ether_arp* arp);
 
 static void debug(struct acd_host *acd, const char *format, ...)
 {
@@ -306,19 +306,18 @@ static int acd_recv_arp_packet(struct acd_host *acd)
 			return 0;
 
 		debug(acd, "LOST IPv4 address %s", inet_ntoa(addr));
+		if (!is_link_local(acd->requested_ip))
+			report_conflict(acd, &arp);
+
 		if (acd->ipv4_lost_cb)
 			acd->ipv4_lost_cb(acd, acd->ipv4_lost_data);
 		return 0;
 	}
 
 	if (acd->conflicts < MAX_CONFLICTS) {
-		if (!is_link_local(acd->requested_ip)) {
-			acd->ac_ip = acd->requested_ip;
-			memcpy(acd->ac_mac, arp.arp_sha, sizeof(acd->ac_mac));
-			acd->ac_timestamp = g_get_real_time();
-			acd->ac_resolved = false;
-			report_conflict(acd);
-		}
+		if (!is_link_local(acd->requested_ip))
+			report_conflict(acd, &arp);
+
 		acd_host_stop(acd);
 
 		/* we need a new request_ip */
@@ -474,10 +473,8 @@ static gboolean acd_announce_timeout(gpointer acd_data)
 	debug(acd, "switching to monitor mode");
 	acd->state = ACD_STATE_MONITOR;
 
-	if (!acd->ac_resolved && !is_link_local(acd->requested_ip)) {
-		acd->ac_resolved = true;
-		report_conflict(acd);
-	}
+	if (!acd->ac_resolved && !is_link_local(acd->requested_ip))
+		report_conflict(acd, NULL);
 
 	if (acd->ipv4_available_cb)
 		acd->ipv4_available_cb(acd,
@@ -570,8 +567,17 @@ void acd_host_append_dbus_property(struct acd_host *acd, DBusMessageIter *dict)
 			append_ac_property, acd);
 }
 
-static void report_conflict(struct acd_host *acd)
+static void report_conflict(struct acd_host *acd, const struct ether_arp* arp)
 {
+	if (arp) {
+		acd->ac_ip = acd->requested_ip;
+		memcpy(acd->ac_mac, arp->arp_sha, sizeof(acd->ac_mac));
+		acd->ac_timestamp = g_get_real_time();
+		acd->ac_resolved = false;
+	} else {
+		acd->ac_resolved = true;
+	}
+
 	connman_dbus_property_changed_dict(acd->path, CONNMAN_SERVICE_INTERFACE,
 			"LastAddressConflict", append_ac_property, acd);
 }
