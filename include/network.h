@@ -102,6 +102,8 @@ void connman_network_set_error(struct connman_network *network,
 int connman_network_set_connected(struct connman_network *network,
 						bool connected);
 bool connman_network_get_connected(struct connman_network *network);
+void connman_network_set_connected_dhcp_later(struct connman_network *network,
+		uint32_t sec);
 
 bool connman_network_get_associating(struct connman_network *network);
 

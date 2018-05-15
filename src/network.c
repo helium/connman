@@ -71,6 +71,7 @@ struct connman_network {
 	int router_solicit_refresh_count;
 	struct acd_host *acd_host;
 	guint ipv4ll_timeout;
+	guint dhcp_timeout;
 
 	struct connman_network_driver *driver;
 	void *driver_data;
@@ -493,6 +494,14 @@ err:
 	return err;
 }
 
+static void remove_dhcp_timeout(struct connman_network *network)
+{
+	if (network->dhcp_timeout > 0) {
+		g_source_remove(network->dhcp_timeout);
+		network->dhcp_timeout = 0;
+	}
+}
+
 static int set_connected_dhcp(struct connman_network *network)
 {
 	struct connman_service *service;
@@ -500,6 +509,7 @@ static int set_connected_dhcp(struct connman_network *network)
 	int err;
 
 	DBG("network %p", network);
+	remove_dhcp_timeout(network);
 
 	service = connman_service_lookup_from_network(network);
 	ipconfig_ipv4 = __connman_service_get_ip4config(service);
@@ -513,6 +523,44 @@ static int set_connected_dhcp(struct connman_network *network)
 	}
 
 	return 0;
+}
+
+static gboolean set_connected_dhcp_timout(gpointer data)
+{
+	struct connman_network *network = data;
+	struct connman_service *service;
+	struct connman_ipconfig *ipconfig;
+	enum connman_ipconfig_method method;
+
+	network->dhcp_timeout = 0;
+
+	service = connman_service_lookup_from_network(network);
+	if (!service)
+		return FALSE;
+
+	ipconfig = __connman_service_get_ip4config(service);
+	if (!ipconfig)
+		return FALSE;
+
+	/* Method is still DHCP? */
+	method = __connman_ipconfig_get_method(ipconfig);
+	if (method == CONNMAN_IPCONFIG_METHOD_DHCP)
+		set_connected_dhcp(network);
+
+	return FALSE;
+}
+
+void connman_network_set_connected_dhcp_later(struct connman_network *network,
+		uint32_t sec)
+{
+	remove_dhcp_timeout(network);
+
+	network->dhcp_timeout =
+		g_timeout_add_seconds_full(G_PRIORITY_HIGH,
+				sec,
+				set_connected_dhcp_timout,
+				network,
+				NULL);
 }
 
 static int manual_ipv6_set(struct connman_network *network,
@@ -916,6 +964,7 @@ static void set_disconnected(struct connman_network *network)
 			__connman_service_notify_ipv4_configuration(service);
 			/* fall through */
 		case CONNMAN_IPCONFIG_METHOD_DHCP:
+			remove_dhcp_timeout(network);
 			__connman_dhcp_stop(ipconfig_ipv4);
 			break;
 		}
@@ -1204,6 +1253,8 @@ struct connman_network *connman_network_create(const char *identifier,
 	network->ipv4ll_timeout = 0;
 
 	network_list = g_slist_prepend(network_list, network);
+
+	network->dhcp_timeout = 0;
 
 	DBG("network %p identifier %s type %s", network, identifier,
 		type2string(type));
@@ -1796,6 +1847,7 @@ int __connman_network_clear_ipconfig(struct connman_network *network,
 		__connman_ipconfig_address_remove(ipconfig);
 		break;
 	case CONNMAN_IPCONFIG_METHOD_DHCP:
+		remove_dhcp_timeout(network);
 		__connman_dhcp_stop(ipconfig_ipv4);
 		break;
 	}
