@@ -35,6 +35,7 @@
 #include <connman/acd.h>
 #include <connman/log.h>
 #include <connman/inet.h>
+#include <connman/dbus.h>
 #include <glib.h>
 #include "src/shared/arp.h"
 
@@ -58,6 +59,13 @@ struct acd_host {
 	char *interface;
 	uint8_t mac_address[6];
 	uint32_t requested_ip; /* host byte order */
+
+	/* address conflict fields */
+	uint32_t ac_ip; /* host byte order */
+	uint8_t ac_mac[6];
+	gint64 ac_timestamp;
+	bool ac_resolved;
+	const char *path;
 
 	bool listen_on;
 	int listener_sockfd;
@@ -87,6 +95,9 @@ static gboolean send_announce_packet(gpointer acd_data);
 static gboolean acd_announce_timeout(gpointer acd_data);
 static gboolean acd_defend_timeout(gpointer acd_data);
 
+/* for D-Bus property */
+static void report_conflict(struct acd_host *acd);
+
 static void debug(struct acd_host *acd, const char *format, ...)
 {
 	char str[256];
@@ -100,7 +111,7 @@ static void debug(struct acd_host *acd, const char *format, ...)
 	va_end(ap);
 }
 
-struct acd_host *acd_host_new(int ifindex)
+struct acd_host *acd_host_new(int ifindex, const char *path)
 {
 	struct acd_host *acd;
 
@@ -139,6 +150,12 @@ struct acd_host *acd_host_new(int ifindex)
 	acd->ipv4_lost_cb = NULL;
 	acd->ipv4_conflict_cb = NULL;
 	acd->ipv4_max_conflicts_cb = NULL;
+
+	acd->ac_ip = 0;
+	memset(acd->ac_mac, 0, sizeof(acd->ac_mac));
+	acd->ac_timestamp = 0;
+	acd->ac_resolved = true;
+	acd->path = path;
 
 	return acd;
 
@@ -221,6 +238,11 @@ static gboolean acd_listener_event(GIOChannel *channel, GIOCondition condition,
 	return TRUE;
 }
 
+static bool is_link_local(uint32_t ip)
+{
+	return (ip & LINKLOCAL_ADDR) == LINKLOCAL_ADDR;
+}
+
 static int acd_recv_arp_packet(struct acd_host *acd)
 {
 	ssize_t cnt;
@@ -290,6 +312,13 @@ static int acd_recv_arp_packet(struct acd_host *acd)
 	}
 
 	if (acd->conflicts < MAX_CONFLICTS) {
+		if (!is_link_local(acd->requested_ip)) {
+			acd->ac_ip = acd->requested_ip;
+			memcpy(acd->ac_mac, arp.arp_sha, sizeof(acd->ac_mac));
+			acd->ac_timestamp = g_get_real_time();
+			acd->ac_resolved = false;
+			report_conflict(acd);
+		}
 		acd_host_stop(acd);
 
 		/* we need a new request_ip */
@@ -445,6 +474,11 @@ static gboolean acd_announce_timeout(gpointer acd_data)
 	debug(acd, "switching to monitor mode");
 	acd->state = ACD_STATE_MONITOR;
 
+	if (!acd->ac_resolved && !is_link_local(acd->requested_ip)) {
+		acd->ac_resolved = true;
+		report_conflict(acd);
+	}
+
 	if (acd->ipv4_available_cb)
 		acd->ipv4_available_cb(acd,
 					acd->ipv4_available_data);
@@ -491,4 +525,53 @@ void acd_host_register_event(struct acd_host *acd,
 		connman_warn("%s unknown event %d.", __FUNCTION__, event);
 		break;
 	}
+}
+
+static void append_ac_mac(DBusMessageIter *iter, void *user_data)
+{
+	struct acd_host *acd = user_data;
+	char mac[32];
+	uint8_t *m = acd->ac_mac;
+	const char *str = mac;
+
+	snprintf(mac, sizeof(mac), "%02x:%02x:%02x:%02x:%02x:%02x",
+			m[0], m[1], m[2], m[3], m[4], m[5]);
+	connman_dbus_dict_append_basic(iter, "Address",	DBUS_TYPE_STRING, &str);
+}
+
+static void append_ac_ipv4(DBusMessageIter *iter, void *user_data)
+{
+	struct acd_host *acd = user_data;
+	struct in_addr addr;
+	char *a;
+
+	addr.s_addr = htonl(acd->ac_ip);
+	a = inet_ntoa(addr);
+	if (!a)
+		a = "";
+	connman_dbus_dict_append_basic(iter, "Address",	DBUS_TYPE_STRING, &a);
+}
+
+static void append_ac_property(DBusMessageIter *iter, void *user_data)
+{
+	struct acd_host *acd = user_data;
+
+	connman_dbus_dict_append_dict(iter, "IPv4", append_ac_ipv4, acd);
+	connman_dbus_dict_append_dict(iter, "Ethernet",	append_ac_mac, acd);
+	connman_dbus_dict_append_basic(iter, "Timestamp", DBUS_TYPE_INT64,
+			&acd->ac_timestamp);
+	connman_dbus_dict_append_basic(iter, "Resolved", DBUS_TYPE_BOOLEAN,
+			&acd->ac_resolved);
+}
+
+void acd_host_append_dbus_property(struct acd_host *acd, DBusMessageIter *dict)
+{
+	connman_dbus_dict_append_dict(dict, "LastAddressConflict",
+			append_ac_property, acd);
+}
+
+static void report_conflict(struct acd_host *acd)
+{
+	connman_dbus_property_changed_dict(acd->path, CONNMAN_SERVICE_INTERFACE,
+			"LastAddressConflict", append_ac_property, acd);
 }

@@ -117,6 +117,7 @@ enum connman_service_type connman_service_get_type(struct connman_service *servi
 char *connman_service_get_interface(struct connman_service *service);
 
 const char *connman_service_get_domainname(struct connman_service *service);
+const char *connman_service_get_dbuspath(struct connman_service *service);
 char **connman_service_get_nameservers(struct connman_service *service);
 char **connman_service_get_timeservers_config(struct connman_service *service);
 char **connman_service_get_timeservers(struct connman_service *service);

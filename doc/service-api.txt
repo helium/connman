@@ -520,3 +520,35 @@ Properties	string State [readonly]
 			Same values as mDNS property. The mDNS
 			represents the actual system configuration
 			while this allows user configuration.
+
+		dict LastAddressConflict [readonly]
+
+			This property contains information about the previously detected
+			address conflict. If there has been no address conflict then
+			IPv4 Address is "0.0.0.0", Ethernet Address is "00:00:00:00:00:00",
+			Timestamp is zero and Resolved is true.
+
+			dict IPv4 [readonly]
+
+				string Address [readonly]
+
+				The IPv4 address which had a conflict.
+
+			dict Ethernet [readonly]
+
+				string Address [readonly]
+
+				The ethernet device address (MAC address) of the conflicting
+				host.
+
+			int64 Timestamp [readonly]
+
+				A timestamp when the conflict was detected in microseconds
+				since January 1, 1970 UTC.
+
+			bool Resolved [readonly]
+
+				Set to false when an address conflict occurs.
+				If a previous conflict could be resolved by probing another
+				IPv4 address (which is not an IPv4LL) then this boolean is set
+				to true.

@@ -35,7 +35,7 @@ extern "C" {
 
 struct acd_host;
 
-struct acd_host *acd_host_new(int ifindex);
+struct acd_host *acd_host_new(int ifindex, const char* path);
 int acd_host_start(struct acd_host *acd, uint32_t ip);
 void acd_host_stop(struct acd_host *acd);
 
@@ -52,6 +52,8 @@ void acd_host_register_event(struct acd_host *acd,
 			    enum acd_host_event event,
 			    acd_host_cb_t func,
 			    gpointer user_data);
+
+void acd_host_append_dbus_property(struct acd_host *acd, DBusMessageIter *dict);
 
 #ifdef __cplusplus
 }

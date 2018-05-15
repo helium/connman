@@ -158,6 +158,15 @@ static void set_configuration(struct connman_network *network,
 					type);
 }
 
+void connman_network_append_acddbus(DBusMessageIter *dict,
+		struct connman_network *network)
+{
+	if (!network->acd_host)
+		return;
+
+	acd_host_append_dbus_property(network->acd_host, dict);
+}
+
 static int start_acd(struct connman_network *network);
 
 static void remove_ipv4ll_timeout(struct connman_network *network)
@@ -339,7 +348,8 @@ static int start_acd(struct connman_network *network)
 		int index;
 
 		index = __connman_ipconfig_get_index(ipconfig_ipv4);
-		network->acd_host = acd_host_new(index);
+		network->acd_host = acd_host_new(index,
+				connman_service_get_dbuspath(service));
 		if (!network->acd_host) {
 			connman_error("Could not create ACD data structure");
 			return -EINVAL;
