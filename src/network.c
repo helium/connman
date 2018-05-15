@@ -157,20 +157,102 @@ static void set_configuration(struct connman_network *network,
 					type);
 }
 
+static int start_acd(struct connman_network *network);
+
 static void acd_host_ipv4_available(struct acd_host *acd, gpointer user_data)
 {
+	struct connman_network *network = user_data;
+	struct connman_service *service;
+	struct connman_ipconfig *ipconfig_ipv4;
+	int err;
+
+	if (!network)
+		return;
+
+	service = connman_service_lookup_from_network(network);
+	if (!service)
+		return;
+
+	ipconfig_ipv4 = __connman_service_get_ip4config(service);
+	if (!ipconfig_ipv4) {
+		connman_error("Service has no IPv4 configuration");
+		return;
+	}
+
+	err = __connman_ipconfig_address_add(ipconfig_ipv4);
+	if (err < 0)
+		goto err;
+
+	err = __connman_ipconfig_gateway_add(ipconfig_ipv4);
+	if (err < 0)
+		goto err;
+
+	__connman_service_save(service);
+
+	return;
+
+err:
+	connman_network_set_error(__connman_service_get_network(service),
+				CONNMAN_NETWORK_ERROR_CONFIGURE_FAIL);
 }
 
 static void acd_host_ipv4_lost(struct acd_host *acd, gpointer user_data)
 {
+	struct connman_network *network = user_data;
+	struct connman_service *service;
+	struct connman_ipconfig *ipconfig_ipv4;
+	enum connman_ipconfig_type type;
+	enum connman_ipconfig_method method;
+
+	if (!network)
+		return;
+
+	service = connman_service_lookup_from_network(network);
+	if (!service)
+		return;
+
+	ipconfig_ipv4 = __connman_service_get_ip4config(service);
+	if (!ipconfig_ipv4) {
+		connman_error("Service has no IPv4 configuration");
+		return;
+	}
+
+	type = __connman_ipconfig_get_config_type(ipconfig_ipv4);
+	if (type != CONNMAN_IPCONFIG_TYPE_IPV4)
+		return;
+
+	__connman_ipconfig_address_remove(ipconfig_ipv4);
+
+	method = __connman_ipconfig_get_method(ipconfig_ipv4);
+	if (method == CONNMAN_IPCONFIG_METHOD_DHCP) {
+		/*
+		 * We have one more chance for DHCP. If this fails
+		 * acd_host_ipv4_conflict will be called.
+		 */
+		network = __connman_service_get_network(service);
+		if (network)
+			__connman_network_enable_ipconfig(network, ipconfig_ipv4);
+	} else {
+		/* Start IPv4LL ACD. */
+	}
 }
 
 static void acd_host_ipv4_conflict(struct acd_host *acd, gpointer user_data)
 {
+	struct connman_network *network = user_data;
+	(void) network;
+
+	/* Start IPv4LL ACD. */
 }
 
 static void acd_host_ipv4_maxconflict(struct acd_host *acd, gpointer user_data)
 {
+	struct connman_network *network = user_data;
+	(void) network;
+
+	connman_info("Had maximum number of conflicts. Next IPv4LL address will be "
+			"tried in %d seconds", RATE_LIMIT_INTERVAL);
+	/* Wait, then start IPv4LL ACD. */
 }
 
 static int start_acd(struct connman_network *network)
