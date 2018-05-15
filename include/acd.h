@@ -26,11 +26,15 @@
 #ifndef __CONNMAN_ACD_H
 #define __CONNMAN_ACD_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct acd_host;
+
+struct acd_host *acd_host_new(int ifindex);
 
 #ifdef __cplusplus
 }
