@@ -28,6 +28,7 @@
 
 #include "connman.h"
 #include <connman/acd.h>
+#include "src/shared/arp.h"
 
 /*
  * How many times to send RS with the purpose of
@@ -156,10 +157,28 @@ static void set_configuration(struct connman_network *network,
 					type);
 }
 
+static void acd_host_ipv4_available(struct acd_host *acd, gpointer user_data)
+{
+}
+
+static void acd_host_ipv4_lost(struct acd_host *acd, gpointer user_data)
+{
+}
+
+static void acd_host_ipv4_conflict(struct acd_host *acd, gpointer user_data)
+{
+}
+
+static void acd_host_ipv4_maxconflict(struct acd_host *acd, gpointer user_data)
+{
+}
+
 static int start_acd(struct connman_network *network)
 {
 	struct connman_service *service;
 	struct connman_ipconfig *ipconfig_ipv4;
+	const char* address;
+	struct in_addr addr;
 
 	service = connman_service_lookup_from_network(network);
 	if (!service)
@@ -170,6 +189,40 @@ static int start_acd(struct connman_network *network)
 		connman_error("Service has no IPv4 configuration");
 		return -EINVAL;
 	}
+
+	if (!network->acd_host) {
+		int index;
+
+		index = __connman_ipconfig_get_index(ipconfig_ipv4);
+		network->acd_host = acd_host_new(index);
+		if (!network->acd_host) {
+			connman_error("Could not create ACD data structure");
+			return -EINVAL;
+		}
+
+		acd_host_register_event(network->acd_host,
+				ACD_HOST_EVENT_IPV4_AVAILABLE,
+				acd_host_ipv4_available, network);
+		acd_host_register_event(network->acd_host,
+				ACD_HOST_EVENT_IPV4_LOST,
+				acd_host_ipv4_lost, network);
+		acd_host_register_event(network->acd_host,
+				ACD_HOST_EVENT_IPV4_CONFLICT,
+				acd_host_ipv4_conflict, network);
+		acd_host_register_event(network->acd_host,
+				ACD_HOST_EVENT_IPV4_MAXCONFLICT,
+				acd_host_ipv4_maxconflict, network);
+	}
+
+	address = __connman_ipconfig_get_local(ipconfig_ipv4);
+	if (!address)
+		return -EINVAL;
+
+	connman_info("Starting ACD for address %s", address);
+	if (inet_pton(AF_INET, address, &addr) != 1)
+		connman_error("Could not convert address %s", address);
+
+	acd_host_start(network->acd_host, htonl(addr.s_addr));
 
 	return 0;
 }
