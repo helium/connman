@@ -66,6 +66,7 @@ typedef enum _dhcp_client_state {
 	REBOOTING,
 	REQUESTING,
 	BOUND,
+	DECLINED,
 	RENEWING,
 	REBINDING,
 	RELEASED,
@@ -469,6 +470,30 @@ static int send_discover(GDHCPClient *dhcp_client, uint32_t requested)
 				INADDR_BROADCAST, SERVER_PORT,
 				MAC_BCAST_ADDR, dhcp_client->ifindex,
 				dhcp_client->retry_times % 2);
+}
+
+int g_dhcp_client_decline(GDHCPClient *dhcp_client, uint32_t requested)
+{
+	struct dhcp_packet packet;
+
+	dhcp_client->state = DECLINED;
+	dhcp_client->retry_times = 0;
+
+	debug(dhcp_client, "sending DHCP decline");
+
+	init_packet(dhcp_client, &packet, DHCPDECLINE);
+
+	packet.xid = dhcp_client->xid;
+	packet.secs = dhcp_attempt_secs(dhcp_client);
+
+	if (requested)
+		dhcp_add_option_uint32(&packet, DHCP_REQUESTED_IP, requested);
+
+	add_send_options(dhcp_client, &packet);
+
+	return dhcp_send_raw_packet(&packet, INADDR_ANY, CLIENT_PORT,
+				INADDR_BROADCAST, SERVER_PORT, MAC_BCAST_ADDR,
+				dhcp_client->ifindex, true);
 }
 
 static int send_request(GDHCPClient *dhcp_client)
@@ -2688,6 +2713,7 @@ int g_dhcp_client_start(GDHCPClient *dhcp_client, const char *last_address)
 	int re;
 	uint32_t addr;
 	uint64_t rand;
+	ClientState oldstate = dhcp_client->state;
 
 	remove_timeouts(dhcp_client);
 
@@ -2803,7 +2829,7 @@ int g_dhcp_client_start(GDHCPClient *dhcp_client, const char *last_address)
 		dhcp_client->start = time(NULL);
 	}
 
-	if (!last_address) {
+	if (!last_address || oldstate == DECLINED) {
 		addr = 0;
 	} else {
 		addr = ntohl(inet_addr(last_address));
@@ -3003,6 +3029,7 @@ char *g_dhcp_client_get_netmask(GDHCPClient *dhcp_client)
 	case REBOOTING:
 	case REQUESTING:
 	case RELEASED:
+	case DECLINED:
 	case IPV4LL_PROBE:
 	case IPV4LL_ANNOUNCE:
 	case INFORMATION_REQ:

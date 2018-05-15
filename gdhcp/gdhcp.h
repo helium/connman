@@ -134,6 +134,7 @@ GDHCPClient *g_dhcp_client_new(GDHCPType type, int index,
 
 int g_dhcp_client_start(GDHCPClient *client, const char *last_address);
 void g_dhcp_client_stop(GDHCPClient *client);
+int g_dhcp_client_decline(GDHCPClient *client, uint32_t requested);
 
 GDHCPClient *g_dhcp_client_ref(GDHCPClient *client);
 void g_dhcp_client_unref(GDHCPClient *client);

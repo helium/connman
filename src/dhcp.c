@@ -745,6 +745,30 @@ void __connman_dhcp_stop(struct connman_ipconfig *ipconfig)
 	}
 }
 
+void __connman_dhcp_decline(struct connman_ipconfig *ipconfig)
+{
+	struct connman_dhcp *dhcp;
+	const char *address;
+	struct in_addr addr;
+
+	DBG("ipconfig_table %p ipconfig %p", ipconfig_table, ipconfig);
+
+	if (!ipconfig_table)
+		return;
+
+	dhcp = g_hash_table_lookup(ipconfig_table, ipconfig);
+	if (dhcp) {
+		address = __connman_ipconfig_get_local(ipconfig);
+		if (!address)
+			return;
+
+		if (inet_pton(AF_INET, address, &addr) != 1)
+			connman_error("Could not convert address %s", address);
+
+		g_dhcp_client_decline(dhcp->dhcp_client, htonl(addr.s_addr));
+	}
+}
+
 int __connman_dhcp_init(void)
 {
 	DBG("");
