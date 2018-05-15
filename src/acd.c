@@ -23,10 +23,13 @@
  *
  */
 
+#include <netinet/if_ether.h>
+#include <net/if_arp.h>
 #include <errno.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include "connman.h"
 #include <connman/acd.h>
@@ -339,14 +342,36 @@ static gboolean send_announce_packet(gpointer acd_data)
 
 static gboolean acd_announce_timeout(gpointer acd_data)
 {
-	(void) acd_data;
+	struct acd_host *acd = acd_data;
+
+	acd->timeout = 0;
+
+	debug(acd, "acd announce timeout (retries %d)", acd->retry_times);
+	if (acd->retry_times != ANNOUNCE_NUM) {
+		acd->retry_times++;
+		send_announce_packet(acd);
+		return FALSE;
+	}
+
+	debug(acd, "switching to monitor mode");
+	acd->state = ACD_STATE_MONITOR;
+
+	if (acd->ipv4_available_cb)
+		acd->ipv4_available_cb(acd,
+					acd->ipv4_available_data);
+	acd->conflicts = 0;
 
 	return FALSE;
 }
 
 static gboolean acd_defend_timeout(gpointer acd_data)
 {
-	(void) acd_data;
+	struct acd_host *acd = acd_data;
+
+	debug(acd, "back to MONITOR mode");
+	acd->timeout = 0;
+	acd->conflicts = 0;
+	acd->state = ACD_STATE_MONITOR;
 
 	return FALSE;
 }
