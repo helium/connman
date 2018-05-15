@@ -464,3 +464,31 @@ static gboolean acd_defend_timeout(gpointer acd_data)
 
 	return FALSE;
 }
+
+void acd_host_register_event(struct acd_host *acd,
+			    enum acd_host_event event,
+			    acd_host_cb_t func,
+			    gpointer user_data)
+{
+	switch (event) {
+	case ACD_HOST_EVENT_IPV4_AVAILABLE:
+		acd->ipv4_available_cb = func;
+		acd->ipv4_available_data = user_data;
+		break;
+	case ACD_HOST_EVENT_IPV4_LOST:
+		acd->ipv4_lost_cb = func;
+		acd->ipv4_lost_data = user_data;
+		break;
+	case ACD_HOST_EVENT_IPV4_CONFLICT:
+		acd->ipv4_conflict_cb = func;
+		acd->ipv4_conflict_data = user_data;
+		break;
+	case ACD_HOST_EVENT_IPV4_MAXCONFLICT:
+		acd->ipv4_max_conflicts_cb = func;
+		acd->ipv4_max_conflicts_data = user_data;
+		break;
+	default:
+		connman_warn("%s unknown event %d.", __FUNCTION__, event);
+		break;
+	}
+}
