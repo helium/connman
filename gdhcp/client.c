@@ -47,7 +47,6 @@
 #include "../src/shared/arp.h"
 #include "gdhcp.h"
 #include "common.h"
-#include "ipv4ll.h"
 
 #define DISCOVER_TIMEOUT 5
 #define DISCOVER_RETRIES 6
@@ -544,7 +543,7 @@ static gboolean send_probe_packet(gpointer dhcp_data)
 	/* if requested_ip is not valid, pick a new address*/
 	if (dhcp_client->requested_ip == 0) {
 		debug(dhcp_client, "pick a new random address");
-		dhcp_client->requested_ip = ipv4ll_random_ip();
+		dhcp_client->requested_ip = arp_random_ip();
 	}
 
 	debug(dhcp_client, "sending IPV4LL probe request");
@@ -1343,7 +1342,7 @@ static void ipv4ll_start(GDHCPClient *dhcp_client)
 	dhcp_client->retry_times = 0;
 	dhcp_client->requested_ip = 0;
 
-	dhcp_client->requested_ip = ipv4ll_random_ip();
+	dhcp_client->requested_ip = arp_random_ip();
 
 	/*first wait a random delay to avoid storm of arp request on boot*/
 	timeout = __connman_util_random_delay_ms(PROBE_WAIT);

@@ -33,6 +33,7 @@
 #include <arpa/inet.h>
 
 #include "src/shared/arp.h"
+#include "src/connman.h"
 
 int arp_send_packet(uint8_t* source_eth, uint32_t source_ip,
 		    uint32_t target_ip, int ifindex)
@@ -105,4 +106,21 @@ int arp_socket(int ifindex)
 	}
 
 	return fd;
+}
+
+/**
+ * Return a random link local IP (in host byte order)
+ */
+uint32_t arp_random_ip(void)
+{
+	unsigned tmp;
+
+	do {
+		uint64_t rand;
+		__connman_util_get_random(&rand);
+		tmp = rand;
+		tmp = tmp & IN_CLASSB_HOST;
+	} while (tmp > (IN_CLASSB_HOST - 0x0200));
+
+	return (LINKLOCAL_ADDR + 0x0100) + tmp;
 }

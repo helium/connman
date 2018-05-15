@@ -37,7 +37,7 @@ backtrace_sources = src/backtrace.c
 endif
 
 gdhcp_sources = gdhcp/gdhcp.h gdhcp/common.h gdhcp/common.c gdhcp/client.c \
-		gdhcp/server.c gdhcp/ipv4ll.h gdhcp/ipv4ll.c gdhcp/unaligned.h
+		gdhcp/server.c gdhcp/unaligned.h
 
 gweb_sources = gweb/gweb.h gweb/gweb.c gweb/gresolv.h gweb/gresolv.c
 
@@ -400,7 +400,8 @@ endif
 tools_dnsproxy_test_SOURCES = tools/dnsproxy-test.c
 tools_dnsproxy_test_LDADD = @GLIB_LIBS@
 
-tools_netlink_test_SOURCES = $(shared_sources) tools/netlink-test.c
+tools_netlink_test_SOURCES = src/shared/util.c src/shared/netlink.c \
+		tools/netlink-test.c
 tools_netlink_test_LDADD = @GLIB_LIBS@
 
 endif

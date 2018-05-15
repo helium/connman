@@ -35,8 +35,13 @@
 #define RATE_LIMIT_INTERVAL 60
 #define DEFEND_INTERVAL	    10
 
+/* 169.254.0.0 */
+#define LINKLOCAL_ADDR 0xa9fe0000
+
 int arp_send_packet(uint8_t* source_eth, uint32_t source_ip,
 		    uint32_t target_ip, int ifindex);
 int arp_socket(int ifindex);
+
+uint32_t arp_random_ip(void);
 
 #endif
