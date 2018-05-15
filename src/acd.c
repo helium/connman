@@ -62,6 +62,9 @@ static void stop_listening(struct acd_host *acd);
 static gboolean acd_listener_event(GIOChannel *channel, GIOCondition condition,
 							gpointer acd_data);
 static int acd_recv_arp_packet(struct acd_host *acd);
+static void send_probe_packet(gpointer acd_data);
+static gboolean acd_probe_timeout(gpointer acd_data);
+static gboolean send_announce_packet(gpointer acd_data);
 
 static void debug(struct acd_host *acd, const char *format, ...)
 {
@@ -203,4 +206,58 @@ int acd_host_start(struct acd_host *acd, uint32_t ip)
 void acd_host_stop(struct acd_host *acd)
 {
 	stop_listening(acd);
+}
+
+static void send_probe_packet(gpointer acd_data)
+{
+	guint timeout;
+	struct acd_host *acd = acd_data;
+
+	debug(acd, "sending ARP probe request");
+	if (acd->retry_times == 1) {
+		acd->state = ACD_STATE_PROBE;
+		start_listening(acd);
+	}
+	arp_send_packet(acd->mac_address, 0,
+			acd->requested_ip, acd->ifindex);
+
+	if (acd->retry_times < PROBE_NUM) {
+		/* Add a random timeout in range of PROBE_MIN to PROBE_MAX. */
+		timeout = __connman_util_random_delay_ms(PROBE_MAX-PROBE_MIN);
+		timeout += PROBE_MIN * 1000;
+	} else
+		timeout = ANNOUNCE_WAIT * 1000;
+
+	acd->timeout = g_timeout_add_full(G_PRIORITY_HIGH,
+						 timeout,
+						 acd_probe_timeout,
+						 acd,
+						 NULL);
+}
+
+static gboolean acd_probe_timeout(gpointer acd_data)
+{
+	struct acd_host *acd = acd_data;
+
+	acd->timeout = 0;
+
+	debug(acd, "acd probe timeout (retries %d)", acd->retry_times);
+	if (acd->retry_times == PROBE_NUM) {
+		acd->state = ACD_STATE_ANNOUNCE;
+		acd->retry_times = 1;
+
+		send_announce_packet(acd);
+		return FALSE;
+	}
+
+	acd->retry_times++;
+	send_probe_packet(acd);
+
+	return FALSE;
+}
+
+static gboolean send_announce_packet(gpointer acd_data)
+{
+	(void) acd_data;
+	return TRUE;
 }
