@@ -50,6 +50,8 @@
  */
 #define RTR_SOLICITATION_INTERVAL	4
 
+#define DHCP_RETRY_TIMEOUT     10
+
 static GSList *network_list = NULL;
 static GSList *driver_list = NULL;
 
@@ -304,10 +306,39 @@ static void acd_host_ipv4_lost(struct acd_host *acd, gpointer user_data)
 static void acd_host_ipv4_conflict(struct acd_host *acd, gpointer user_data)
 {
 	struct connman_network *network = user_data;
-	(void) network;
+	struct connman_service *service;
+	struct connman_ipconfig *ipconfig_ipv4;
+	enum connman_ipconfig_method method;
 
-	/* Start IPv4LL ACD. */
-	start_ipv4ll(network);
+	service = connman_service_lookup_from_network(network);
+	if (!service)
+		return;
+
+	ipconfig_ipv4 = __connman_service_get_ip4config(service);
+	if (!ipconfig_ipv4) {
+		connman_error("Service has no IPv4 configuration");
+		return;
+	}
+
+	method = __connman_ipconfig_get_method(ipconfig_ipv4);
+	connman_info("%s conflict counts=%u", __FUNCTION__,
+			acd_host_get_conflicts_count(acd));
+
+	if (method == CONNMAN_IPCONFIG_METHOD_DHCP &&
+			acd_host_get_conflicts_count(acd) < 2) {
+		connman_info("%s Sending DHCP decline", __FUNCTION__);
+		__connman_dhcp_decline(ipconfig_ipv4);
+
+		connman_network_set_connected_dhcp_later(network, DHCP_RETRY_TIMEOUT);
+		__connman_ipconfig_set_local(ipconfig_ipv4, NULL);
+	} else {
+		if (method == CONNMAN_IPCONFIG_METHOD_DHCP) {
+			__connman_ipconfig_set_method(ipconfig_ipv4,
+					CONNMAN_IPCONFIG_METHOD_AUTO);
+		}
+		/* Start IPv4LL ACD. */
+		start_ipv4ll(network);
+	}
 }
 
 static void acd_host_ipv4_maxconflict(struct acd_host *acd, gpointer user_data)
