@@ -91,3 +91,14 @@ void __connman_util_cleanup(void)
 
 	f = -1;
 }
+
+/**
+ * Return a random delay in range of zero to secs*1000 milli seconds.
+ */
+unsigned int __connman_util_random_delay_ms(unsigned int secs)
+{
+       uint64_t rand;
+
+       __connman_util_get_random(&rand);
+       return rand % (secs * 1000);
+}

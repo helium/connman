@@ -44,7 +44,6 @@ extern "C" {
 #define DEFEND_INTERVAL	    10
 
 uint32_t ipv4ll_random_ip(void);
-guint ipv4ll_random_delay_ms(guint secs);
 int ipv4ll_send_arp_packet(uint8_t* source_eth, uint32_t source_ip,
 		    uint32_t target_ip, int ifindex);
 int ipv4ll_arp_socket(int ifindex);

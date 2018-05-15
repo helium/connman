@@ -32,6 +32,10 @@ gdbus_libgdbus_internal_la_SOURCES = gdbus/gdbus.h \
 				gdbus/mainloop.c gdbus/watch.c \
 				gdbus/object.c gdbus/client.c gdbus/polkit.c
 
+if BACKTRACE
+backtrace_sources = src/backtrace.c
+endif
+
 gdhcp_sources = gdhcp/gdhcp.h gdhcp/common.h gdhcp/common.c gdhcp/client.c \
 		gdhcp/server.c gdhcp/ipv4ll.h gdhcp/ipv4ll.c gdhcp/unaligned.h
 
@@ -355,11 +359,13 @@ tools_wpad_test_LDADD = @GLIB_LIBS@ -lresolv
 
 tools_stats_tool_LDADD = @GLIB_LIBS@
 
-tools_dhcp_test_SOURCES = $(gdhcp_sources) tools/dhcp-test.c
-tools_dhcp_test_LDADD = @GLIB_LIBS@
+tools_dhcp_test_SOURCES = $(backtrace_sources) src/log.c \
+		 src/util.c $(gdhcp_sources) tools/dhcp-test.c
+tools_dhcp_test_LDADD = @GLIB_LIBS@ -ldl
 
-tools_dhcp_server_test_SOURCES = $(gdhcp_sources) tools/dhcp-server-test.c
-tools_dhcp_server_test_LDADD = @GLIB_LIBS@
+tools_dhcp_server_test_SOURCES =  $(backtrace_sources) src/log.c src/util.c \
+		$(gdhcp_sources) tools/dhcp-server-test.c
+tools_dhcp_server_test_LDADD = @GLIB_LIBS@ -ldl
 
 tools_dbus_test_SOURCES = tools/dbus-test.c
 tools_dbus_test_LDADD = gdbus/libgdbus-internal.la @GLIB_LIBS@ @DBUS_LIBS@

@@ -43,6 +43,7 @@
 
 #include <glib.h>
 
+#include "../src/connman.h"
 #include "gdhcp.h"
 #include "common.h"
 #include "ipv4ll.h"
@@ -556,7 +557,7 @@ static gboolean send_probe_packet(gpointer dhcp_data)
 
 	if (dhcp_client->retry_times < PROBE_NUM) {
 		/*add a random timeout in range of PROBE_MIN to PROBE_MAX*/
-		timeout = ipv4ll_random_delay_ms(PROBE_MAX-PROBE_MIN);
+		timeout = __connman_util_random_delay_ms(PROBE_MAX-PROBE_MIN);
 		timeout += PROBE_MIN*1000;
 	} else
 		timeout = (ANNOUNCE_WAIT * 1000);
@@ -1376,7 +1377,7 @@ static void ipv4ll_start(GDHCPClient *dhcp_client)
 	dhcp_client->requested_ip = ipv4ll_random_ip();
 
 	/*first wait a random delay to avoid storm of arp request on boot*/
-	timeout = ipv4ll_random_delay_ms(PROBE_WAIT);
+	timeout = __connman_util_random_delay_ms(PROBE_WAIT);
 
 	dhcp_client->retry_times++;
 	dhcp_client->timeout = g_timeout_add_full(G_PRIORITY_HIGH,
@@ -1466,7 +1467,7 @@ static int ipv4ll_recv_arp_packet(GDHCPClient *dhcp_client)
 		dhcp_client->retry_times++;
 		dhcp_client->timeout =
 			g_timeout_add_full(G_PRIORITY_HIGH,
-					ipv4ll_random_delay_ms(PROBE_WAIT),
+					__connman_util_random_delay_ms(PROBE_WAIT),
 					send_probe_packet,
 					dhcp_client,
 					NULL);

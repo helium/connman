@@ -52,17 +52,6 @@ uint32_t ipv4ll_random_ip(void)
 	return ((LINKLOCAL_ADDR + 0x0100) + tmp);
 }
 
-/**
- * Return a random delay in range of zero to secs*1000
- */
-guint ipv4ll_random_delay_ms(guint secs)
-{
-	uint64_t rand;
-
-	dhcp_get_random(&rand);
-	return rand % (secs * 1000);
-}
-
 int ipv4ll_send_arp_packet(uint8_t* source_eth, uint32_t source_ip,
 		    uint32_t target_ip, int ifindex)
 {
