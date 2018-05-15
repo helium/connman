@@ -330,6 +330,40 @@ done:
 	return err;
 }
 
+bool connman_inet_is_ifup(int index)
+{
+	int sk;
+	struct ifreq ifr;
+	bool ret = false;
+
+	sk = socket(PF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+	if (sk < 0) {
+		connman_warn("Failed to open socket");
+		return false;
+	}
+
+	memset(&ifr, 0, sizeof(ifr));
+	ifr.ifr_ifindex = index;
+
+	if (ioctl(sk, SIOCGIFNAME, &ifr) < 0) {
+		connman_warn("Failed to get interface name for interface %d", index);
+		goto done;
+	}
+
+	if (ioctl(sk, SIOCGIFFLAGS, &ifr) < 0) {
+		connman_warn("Failed to get interface flags for index %d", index);
+		goto done;
+	}
+
+	if (ifr.ifr_flags & IFF_UP)
+		ret = true;
+
+done:
+	close(sk);
+
+	return ret;
+}
+
 struct in6_ifreq {
 	struct in6_addr ifr6_addr;
 	__u32 ifr6_prefixlen;
