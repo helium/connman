@@ -2734,6 +2734,41 @@ out:
 	return err;
 }
 
+int __connman_inet_get_interface_mac_address(int index, uint8_t *mac_address)
+{
+	struct ifreq ifr;
+	int sk, err;
+	int ret = -EINVAL;
+
+	sk = socket(PF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+	if (sk < 0) {
+		DBG("Open socket error");
+		return ret;
+	}
+
+	memset(&ifr, 0, sizeof(ifr));
+	ifr.ifr_ifindex = index;
+
+	err = ioctl(sk, SIOCGIFNAME, &ifr);
+	if (err < 0) {
+		DBG("Get interface name error");
+		goto done;
+	}
+
+	err = ioctl(sk, SIOCGIFHWADDR, &ifr);
+	if (err < 0) {
+		DBG("Get MAC address error");
+		goto done;
+	}
+
+	memcpy(mac_address, ifr.ifr_hwaddr.sa_data, ETH_ALEN);
+	ret = 0;
+
+done:
+	close(sk);
+	return ret;
+}
+
 static int iprule_modify(int cmd, int family, uint32_t table_id,
 			uint32_t fwmark)
 {

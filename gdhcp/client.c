@@ -607,38 +607,6 @@ static gboolean send_announce_packet(gpointer dhcp_data)
 	return TRUE;
 }
 
-static void get_interface_mac_address(int index, uint8_t *mac_address)
-{
-	struct ifreq ifr;
-	int sk, err;
-
-	sk = socket(PF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
-	if (sk < 0) {
-		perror("Open socket error");
-		return;
-	}
-
-	memset(&ifr, 0, sizeof(ifr));
-	ifr.ifr_ifindex = index;
-
-	err = ioctl(sk, SIOCGIFNAME, &ifr);
-	if (err < 0) {
-		perror("Get interface name error");
-		goto done;
-	}
-
-	err = ioctl(sk, SIOCGIFHWADDR, &ifr);
-	if (err < 0) {
-		perror("Get mac address error");
-		goto done;
-	}
-
-	memcpy(mac_address, ifr.ifr_hwaddr.sa_data, 6);
-
-done:
-	close(sk);
-}
-
 void g_dhcpv6_client_set_retransmit(GDHCPClient *dhcp_client)
 {
 	if (!dhcp_client)
@@ -669,7 +637,7 @@ int g_dhcpv6_create_duid(GDHCPDuidType duid_type, int index, int type,
 
 		(*duid)[0] = 0;
 		(*duid)[1] = 1;
-		get_interface_mac_address(index, &(*duid)[2 + 2 + 4]);
+		__connman_inet_get_interface_mac_address(index, &(*duid)[2 + 2 + 4]);
 		(*duid)[2] = 0;
 		(*duid)[3] = type;
 		duid_time = time(NULL) - DUID_TIME_EPOCH;
@@ -688,7 +656,7 @@ int g_dhcpv6_create_duid(GDHCPDuidType duid_type, int index, int type,
 
 		(*duid)[0] = 0;
 		(*duid)[1] = 3;
-		get_interface_mac_address(index, &(*duid)[2 + 2]);
+		__connman_inet_get_interface_mac_address(index, &(*duid)[2 + 2]);
 		(*duid)[2] = 0;
 		(*duid)[3] = type;
 		break;
@@ -813,7 +781,7 @@ void g_dhcpv6_client_create_iaid(GDHCPClient *dhcp_client, int index,
 {
 	uint8_t buf[6];
 
-	get_interface_mac_address(index, buf);
+	__connman_inet_get_interface_mac_address(index, buf);
 
 	memcpy(iaid, &buf[2], 4);
 	dhcp_client->iaid = iaid[0] << 24 |
@@ -1180,7 +1148,7 @@ GDHCPClient *g_dhcp_client_new(GDHCPType type,
 		goto error;
 	}
 
-	get_interface_mac_address(ifindex, dhcp_client->mac_address);
+	__connman_inet_get_interface_mac_address(ifindex, dhcp_client->mac_address);
 
 	dhcp_client->listener_sockfd = -1;
 	dhcp_client->listen_mode = L_NONE;
