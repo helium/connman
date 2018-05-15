@@ -335,6 +335,7 @@ static void acd_host_ipv4_conflict(struct acd_host *acd, gpointer user_data)
 		if (method == CONNMAN_IPCONFIG_METHOD_DHCP) {
 			__connman_ipconfig_set_method(ipconfig_ipv4,
 					CONNMAN_IPCONFIG_METHOD_AUTO);
+			__connman_dhcp_decline(ipconfig_ipv4);
 		}
 		/* Start IPv4LL ACD. */
 		start_ipv4ll(network);
