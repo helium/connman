@@ -520,7 +520,7 @@ static int send_release(GDHCPClient *dhcp_client,
 	debug(dhcp_client, "sending DHCP release request");
 
 	init_packet(dhcp_client, &packet, DHCPRELEASE);
-	dhcp_get_random(&rand);
+	__connman_util_get_random(&rand);
 	packet.xid = rand;
 	packet.ciaddr = htonl(ciaddr);
 
@@ -1688,7 +1688,7 @@ static gboolean continue_rebound(gpointer user_data)
 	/*recalculate remaining rebind time*/
 	dhcp_client->T2 >>= 1;
 	if (dhcp_client->T2 > 60) {
-		dhcp_get_random(&rand);
+		__connman_util_get_random(&rand);
 		dhcp_client->t2_timeout =
 			g_timeout_add_full(G_PRIORITY_HIGH,
 					dhcp_client->T2 * 1000 + (rand % 2000) - 1000,
@@ -1736,7 +1736,7 @@ static gboolean continue_renew (gpointer user_data)
 	dhcp_client->T1 >>= 1;
 
 	if (dhcp_client->T1 > 60) {
-		dhcp_get_random(&rand);
+		__connman_util_get_random(&rand);
 		dhcp_client->t1_timeout = g_timeout_add_full(G_PRIORITY_HIGH,
 				dhcp_client->T1 * 1000 + (rand % 2000) - 1000,
 				continue_renew,
@@ -2830,7 +2830,7 @@ int g_dhcp_client_start(GDHCPClient *dhcp_client, const char *last_address)
 		if (re != 0)
 			return re;
 
-		dhcp_get_random(&rand);
+		__connman_util_get_random(&rand);
 		dhcp_client->xid = rand;
 		dhcp_client->start = time(NULL);
 	}

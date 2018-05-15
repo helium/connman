@@ -37,6 +37,8 @@
 
 #include <gdhcp/gdhcp.h>
 
+#include "../src/connman.h"
+
 static GTimer *timer;
 
 static GMainLoop *main_loop;
@@ -177,7 +179,11 @@ int main(int argc, char *argv[])
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGTERM, &sa, NULL);
 
+	__connman_util_init();
+
 	g_main_loop_run(main_loop);
+
+	__connman_util_cleanup();
 
 	g_timer_destroy(timer);
 

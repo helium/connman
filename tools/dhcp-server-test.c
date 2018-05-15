@@ -29,6 +29,8 @@
 
 #include <gdhcp/gdhcp.h>
 
+#include "../src/connman.h"
+
 static GMainLoop *main_loop;
 
 static void sig_term(int sig)
@@ -113,7 +115,11 @@ int main(int argc, char *argv[])
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGTERM, &sa, NULL);
 
+	__connman_util_init();
+
 	g_main_loop_run(main_loop);
+
+	__connman_util_cleanup();
 
 	g_dhcp_server_unref(dhcp_server);
 

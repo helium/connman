@@ -35,6 +35,7 @@
 #include <glib.h>
 #include "ipv4ll.h"
 #include "common.h"
+#include "../src/connman.h"
 
 /**
  * Return a random link local IP (in host byte order)
@@ -45,7 +46,7 @@ uint32_t ipv4ll_random_ip(void)
 	uint64_t rand;
 
 	do {
-		dhcp_get_random(&rand);
+		__connman_util_get_random(&rand);
 		tmp = rand;
 		tmp = tmp & IN_CLASSB_HOST;
 	} while (tmp > (IN_CLASSB_HOST - 0x0200));

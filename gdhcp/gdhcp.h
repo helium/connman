@@ -232,9 +232,6 @@ void g_dhcp_server_set_save_lease(GDHCPServer *dhcp_server,
 void g_dhcp_server_set_lease_added_cb(GDHCPServer *dhcp_server,
 							GDHCPLeaseAddedCb cb);
 
-int dhcp_get_random(uint64_t *val);
-void dhcp_cleanup_random(void);
-
 #ifdef __cplusplus
 }
 #endif
