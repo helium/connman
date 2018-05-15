@@ -160,6 +160,16 @@ Default value is true.
 Automatically connect roaming services. This is not recommended unless you know
 you won't have any billing problem.
 Default value is false.
+.TP
+.BI AddressConflictDetection=true\ \fR|\fB\ false
+Enable or disable the implementation of IPv4 address conflict detection
+according to RFC5227. ConnMan will send probe ARP packets to see if an
+IPv4 address is already in use before assigning the address to an interface.
+If an address conflict occurs for a statically configured address, an IPv4LL
+address will be chosen instead (according to RFC3927). If an address conflict
+occurs for an address offered via DHCP, ConnMan send a DHCP DECLINE once and
+for the second conflict resort to finding an IPv4LL address.
+Default value is false.
 .SH "EXAMPLE"
 The following example configuration disables hostname updates and enables
 ethernet tethering.
