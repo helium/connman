@@ -44,6 +44,7 @@
 #include <glib.h>
 
 #include "../src/connman.h"
+#include "../src/shared/arp.h"
 #include "gdhcp.h"
 #include "common.h"
 #include "ipv4ll.h"
@@ -552,7 +553,7 @@ static gboolean send_probe_packet(gpointer dhcp_data)
 		dhcp_client->state = IPV4LL_PROBE;
 		switch_listening_mode(dhcp_client, L_ARP);
 	}
-	ipv4ll_send_arp_packet(dhcp_client->mac_address, 0,
+	arp_send_packet(dhcp_client->mac_address, 0,
 			dhcp_client->requested_ip, dhcp_client->ifindex);
 
 	if (dhcp_client->retry_times < PROBE_NUM) {
@@ -581,7 +582,7 @@ static gboolean send_announce_packet(gpointer dhcp_data)
 
 	debug(dhcp_client, "sending IPV4LL announce request");
 
-	ipv4ll_send_arp_packet(dhcp_client->mac_address,
+	arp_send_packet(dhcp_client->mac_address,
 				dhcp_client->requested_ip,
 				dhcp_client->requested_ip,
 				dhcp_client->ifindex);
@@ -1568,7 +1569,7 @@ static int switch_listening_mode(GDHCPClient *dhcp_client,
 							dhcp_client->interface,
 							AF_INET);
 	} else if (listen_mode == L_ARP)
-		listener_sockfd = ipv4ll_arp_socket(dhcp_client->ifindex);
+		listener_sockfd = arp_socket(dhcp_client->ifindex);
 	else
 		return -EIO;
 

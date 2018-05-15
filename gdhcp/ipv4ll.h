@@ -22,7 +22,7 @@
 #ifndef __G_IPV4LL_H
 #define __G_IPV4LL_H
 
-#include <glib.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,22 +31,7 @@ extern "C" {
 /* 169.254.0.0 */
 #define LINKLOCAL_ADDR 0xa9fe0000
 
-/* See RFC 3927 */
-#define PROBE_WAIT	     1
-#define PROBE_NUM	     3
-#define PROBE_MIN	     1
-#define PROBE_MAX	     2
-#define ANNOUNCE_WAIT	     2
-#define ANNOUNCE_NUM	     2
-#define ANNOUNCE_INTERVAL    2
-#define MAX_CONFLICTS	    10
-#define RATE_LIMIT_INTERVAL 60
-#define DEFEND_INTERVAL	    10
-
 uint32_t ipv4ll_random_ip(void);
-int ipv4ll_send_arp_packet(uint8_t* source_eth, uint32_t source_ip,
-		    uint32_t target_ip, int ifindex);
-int ipv4ll_arp_socket(int ifindex);
 
 #ifdef __cplusplus
 }
