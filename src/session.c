@@ -515,6 +515,9 @@ static void free_session(struct connman_session *session)
 	if (session->notify_watch > 0)
 		g_dbus_remove_watch(connection, session->notify_watch);
 
+	g_dbus_unregister_interface(connection, session->session_path,
+				    CONNMAN_SESSION_INTERFACE);
+
 	destroy_policy_config(session);
 	g_slist_free(session->info->config.allowed_bearers);
 	g_free(session->info->config.allowed_interface);
