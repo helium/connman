@@ -1410,8 +1410,9 @@ static int session_policy_config_cb(struct connman_session *session,
 					session_methods, NULL, NULL,
 					session, NULL)) {
 		connman_error("Failed to register %s", session->session_path);
+		g_hash_table_remove(session_hash, session->session_path);
 		err = -EINVAL;
-		goto err;
+		goto err_notify;
 	}
 
 	reply = g_dbus_create_reply(creation_data->pending,
@@ -1436,12 +1437,13 @@ static int session_policy_config_cb(struct connman_session *session,
 	return 0;
 
 err:
-	g_hash_table_remove(session_hash, session->session_path);
+	cleanup_session(session);
+
+err_notify:
 	reply = __connman_error_failed(creation_data->pending, -err);
 	g_dbus_send_message(connection, reply);
 	creation_data->pending = NULL;
 
-	cleanup_session(session);
 	cleanup_creation_data(creation_data);
 
 	return err;
