@@ -82,6 +82,7 @@ static struct {
 	bool enable_online_check;
 	bool auto_connect_roaming_services;
 	bool acd;
+	bool use_gateways_as_timeservers;
 } connman_settings  = {
 	.bg_scan = true,
 	.pref_timeservers = NULL,
@@ -102,6 +103,7 @@ static struct {
 	.enable_online_check = true,
 	.auto_connect_roaming_services = false,
 	.acd = false,
+	.use_gateways_as_timeservers = false,
 };
 
 #define CONF_BG_SCAN                    "BackgroundScanning"
@@ -123,6 +125,7 @@ static struct {
 #define CONF_ENABLE_ONLINE_CHECK        "EnableOnlineCheck"
 #define CONF_AUTO_CONNECT_ROAMING_SERVICES "AutoConnectRoamingServices"
 #define CONF_ACD                        "AddressConflictDetection"
+#define CONF_USE_GATEWAYS_AS_TIMESERVERS "UseGatewayAsTimeservers"
 
 static const char *supported_options[] = {
 	CONF_BG_SCAN,
@@ -144,6 +147,7 @@ static const char *supported_options[] = {
 	CONF_ENABLE_ONLINE_CHECK,
 	CONF_AUTO_CONNECT_ROAMING_SERVICES,
 	CONF_ACD,
+	CONF_USE_GATEWAYS_AS_TIMESERVERS,
 	NULL
 };
 
@@ -441,6 +445,13 @@ static void parse_config(GKeyFile *config)
 		connman_settings.acd = boolean;
 
 	g_clear_error(&error);
+
+	boolean = __connman_config_get_bool(config, "General",
+				CONF_USE_GATEWAYS_AS_TIMESERVERS, &error);
+	if (!error)
+		connman_settings.use_gateways_as_timeservers = boolean;
+
+	g_clear_error(&error);
 }
 
 static int config_init(const char *file)
@@ -656,6 +667,9 @@ bool connman_setting_get_bool(const char *key)
 
 	if (g_str_equal(key, CONF_ACD))
 		return connman_settings.acd;
+
+	if (g_str_equal(key, CONF_USE_GATEWAYS_AS_TIMESERVERS))
+		return connman_settings.use_gateways_as_timeservers;
 
 	return false;
 }
