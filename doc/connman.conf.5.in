@@ -52,12 +52,17 @@ When BackgroundScanning is false, ConnMan will not perform any scan
 regardless of wifi is connected or not, unless it is requested by
 the user through a D-Bus call.
 .TP
+.BI UseGatewaysAsTimeservers=true \fR|\fB\ false
+Assume that service gateways also function as timeservers.
+Default is false.
+.TP
 .BI FallbackTimeservers= server\fR[,...]
 List of Fallback timeservers separated by ",".
 These timeservers are used for NTP sync when there are
-no timeserver set by the user or by the service.
-These can contain mixed combination of fully qualified
-domain names, IPv4 and IPv6 addresses.
+no timeservers set by the user or by the service, and
+when UseGatewaysAsTimeservers = false. These can contain
+a mixed combination of fully qualified domain names, IPv4
+and IPv6 addresses.
 .TP
 .BI FallbackNameservers= server\fR[,...]
 List of fallback nameservers separated by "," appended
