@@ -268,15 +268,20 @@ GSList *__connman_timeserver_get_all(struct connman_service *service)
 	for (i = 0; service_ts && service_ts[i]; i++)
 		list = __connman_timeserver_add_list(list, service_ts[i]);
 
-	network = __connman_service_get_network(service);
-	if (network) {
-		index = connman_network_get_index(network);
-		service_gw = __connman_ipconfig_get_gateway_from_index(index,
-			CONNMAN_IPCONFIG_TYPE_ALL);
+	/*
+	 * Then add Service Gateway to the list, if UseGatewaysAsTimeservers
+	 * configuration option is set to true.
+	 */
+	if (connman_setting_get_bool("UseGatewaysAsTimeservers")) {
+		network = __connman_service_get_network(service);
+		if (network) {
+			index = connman_network_get_index(network);
+			service_gw = __connman_ipconfig_get_gateway_from_index(index,
+				CONNMAN_IPCONFIG_TYPE_ALL);
 
-		/* Then add Service Gateway to the list */
-		if (service_gw)
-			list = __connman_timeserver_add_list(list, service_gw);
+			if (service_gw)
+				list = __connman_timeserver_add_list(list, service_gw);
+		}
 	}
 
 	/* Then add Global Timeservers to the list */
