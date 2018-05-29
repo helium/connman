@@ -11,6 +11,7 @@ The following features are built-in into Connection Manager:
 	- Generic plugin infrastructure
 	- Device and network abstraction (with basic storage support)
 	- IPv4, IPv4-LL (link-local) and DHCP
+	- IPv4 address conflict detection (ACD) according to RFC 5227
 	- IPv6, DHCPv6 and 6to4 tunnels
 	- Advanced routing and DNS configuration
 	- Built-in DNS proxy and intelligent caching
