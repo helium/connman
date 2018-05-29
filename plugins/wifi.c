@@ -167,7 +167,7 @@ static GList *iface_list = NULL;
 
 static GList *pending_wifi_device = NULL;
 static GList *p2p_iface_list = NULL;
-bool wfd_service_registered = false;
+static bool wfd_service_registered = false;
 
 static void start_autoscan(struct connman_device *device);
 static int tech_set_tethering(struct connman_technology *technology,
