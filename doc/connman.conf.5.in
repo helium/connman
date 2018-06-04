@@ -77,6 +77,12 @@ for this entry when empty is ethernet,wifi,cellular.
 Services that are automatically connected must have been
 set up and saved to storage beforehand.
 .TP
+.BI DefaultFavoriteTechnologies= technology\fR[,...]
+List of technologies that are marked favorite by default,
+separated by commas ",". The default value for this entry
+when empty is ethernet. Connects to services from this
+technology even if not setup and saved to storage.
+.TP
 .BI AlwaysConnectedTechnologies= technology\fR[,...]
 List of technoolgies which are always connected regardless
 of PreferredTechnologies setting (AutoConnect = true). The

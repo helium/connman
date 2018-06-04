@@ -54,6 +54,11 @@ static char *default_auto_connect[] = {
 	NULL
 };
 
+static char *default_favorite_techs[] = {
+	"ethernet",
+	NULL
+};
+
 static char *default_blacklist[] = {
 	"vmnet",
 	"vboxnet",
@@ -68,6 +73,7 @@ static struct {
 	bool bg_scan;
 	char **pref_timeservers;
 	unsigned int *auto_connect;
+	unsigned int *favorite_techs;
 	unsigned int *preferred_techs;
 	unsigned int *always_connected_techs;
 	char **fallback_nameservers;
@@ -89,6 +95,7 @@ static struct {
 	.bg_scan = true,
 	.pref_timeservers = NULL,
 	.auto_connect = NULL,
+	.favorite_techs = NULL,
 	.preferred_techs = NULL,
 	.always_connected_techs = NULL,
 	.fallback_nameservers = NULL,
@@ -111,6 +118,7 @@ static struct {
 #define CONF_BG_SCAN                    "BackgroundScanning"
 #define CONF_PREF_TIMESERVERS           "FallbackTimeservers"
 #define CONF_AUTO_CONNECT               "DefaultAutoConnectTechnologies"
+#define CONF_FAVORITE_TECHS             "DefaultFavoriteTechnologies"
 #define CONF_ALWAYS_CONNECTED_TECHS     "AlwaysConnectedTechnologies"
 #define CONF_PREFERRED_TECHS            "PreferredTechnologies"
 #define CONF_FALLBACK_NAMESERVERS       "FallbackNameservers"
@@ -279,6 +287,8 @@ static void parse_config(GKeyFile *config)
 	if (!config) {
 		connman_settings.auto_connect =
 			parse_service_types(default_auto_connect, CONF_ARRAY_SIZE(default_auto_connect));
+		connman_settings.favorite_techs =
+			parse_service_types(default_favorite_techs, CONF_ARRAY_SIZE(default_favorite_techs));
 		connman_settings.blacklisted_interfaces =
 			g_strdupv(default_blacklist);
 		return;
@@ -309,6 +319,16 @@ static void parse_config(GKeyFile *config)
 	else
 		connman_settings.auto_connect =
 			parse_service_types(default_auto_connect, CONF_ARRAY_SIZE(default_auto_connect));
+
+	str_list = __connman_config_get_string_list(config, "General",
+			CONF_FAVORITE_TECHS, &len, &error);
+
+	if (!error)
+		connman_settings.favorite_techs =
+			parse_service_types(str_list, len);
+	else
+		connman_settings.favorite_techs =
+			parse_service_types(default_favorite_techs, CONF_ARRAY_SIZE(default_favorite_techs));
 
 	g_strfreev(str_list);
 
@@ -698,6 +718,9 @@ unsigned int *connman_setting_get_uint_list(const char *key)
 	if (g_str_equal(key, CONF_AUTO_CONNECT))
 		return connman_settings.auto_connect;
 
+	if (g_str_equal(key, CONF_FAVORITE_TECHS))
+		return connman_settings.favorite_techs;
+
 	if (g_str_equal(key, CONF_PREFERRED_TECHS))
 		return connman_settings.preferred_techs;
 
@@ -889,6 +912,7 @@ int main(int argc, char *argv[])
 		g_strfreev(connman_settings.pref_timeservers);
 
 	g_free(connman_settings.auto_connect);
+	g_free(connman_settings.favorite_techs);
 	g_free(connman_settings.preferred_techs);
 	g_strfreev(connman_settings.fallback_nameservers);
 	g_strfreev(connman_settings.blacklisted_interfaces);
