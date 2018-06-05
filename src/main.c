@@ -117,7 +117,7 @@ static struct {
 
 #define CONF_BG_SCAN                    "BackgroundScanning"
 #define CONF_PREF_TIMESERVERS           "FallbackTimeservers"
-#define CONF_AUTO_CONNECT               "DefaultAutoConnectTechnologies"
+#define CONF_AUTO_CONNECT_TECHS         "DefaultAutoConnectTechnologies"
 #define CONF_FAVORITE_TECHS             "DefaultFavoriteTechnologies"
 #define CONF_ALWAYS_CONNECTED_TECHS     "AlwaysConnectedTechnologies"
 #define CONF_PREFERRED_TECHS            "PreferredTechnologies"
@@ -140,7 +140,7 @@ static struct {
 static const char *supported_options[] = {
 	CONF_BG_SCAN,
 	CONF_PREF_TIMESERVERS,
-	CONF_AUTO_CONNECT,
+	CONF_AUTO_CONNECT_TECHS,
 	CONF_ALWAYS_CONNECTED_TECHS,
 	CONF_PREFERRED_TECHS,
 	CONF_FALLBACK_NAMESERVERS,
@@ -311,7 +311,7 @@ static void parse_config(GKeyFile *config)
 	g_clear_error(&error);
 
 	str_list = __connman_config_get_string_list(config, "General",
-			CONF_AUTO_CONNECT, &len, &error);
+			CONF_AUTO_CONNECT_TECHS, &len, &error);
 
 	if (!error)
 		connman_settings.auto_connect =
@@ -715,7 +715,7 @@ char **connman_setting_get_string_list(const char *key)
 
 unsigned int *connman_setting_get_uint_list(const char *key)
 {
-	if (g_str_equal(key, CONF_AUTO_CONNECT))
+	if (g_str_equal(key, CONF_AUTO_CONNECT_TECHS))
 		return connman_settings.auto_connect;
 
 	if (g_str_equal(key, CONF_FAVORITE_TECHS))
