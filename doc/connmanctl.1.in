@@ -180,7 +180,7 @@ Configures the IPv6 settings for the service. The argument
 settings will be asked from the network and \fBmanual\fR means
 that the given arguments will be used as IPv6 settings.
 .IR address " and " gateway
-must be valid IPv4 addresses. \fIprefixlength\fR is the length
+must be valid IPv6 addresses. \fIprefixlength\fR is the length
 of the prefix in bits. See the \fBEXAMPLE\fR section of this man
 page for details.
 .PP
