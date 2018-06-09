@@ -127,6 +127,7 @@ static void read_uevent(struct interface_data *interface)
 	if (ether_blacklisted(name)) {
 		interface->service_type = CONNMAN_SERVICE_TYPE_UNKNOWN;
 		interface->device_type = CONNMAN_DEVICE_TYPE_UNKNOWN;
+		goto out;
 	} else {
 		interface->service_type = CONNMAN_SERVICE_TYPE_ETHERNET;
 		interface->device_type = CONNMAN_DEVICE_TYPE_ETHERNET;
