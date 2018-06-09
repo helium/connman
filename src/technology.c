@@ -100,7 +100,7 @@ static void rfkill_check(gpointer key, gpointer value, gpointer user_data)
 	struct connman_rfkill *rfkill = value;
 	enum connman_service_type type = GPOINTER_TO_INT(user_data);
 
-	/* Calling _technology_rfkill_add will update the tech. */
+	/* Calling _technology_add_rfkill will update the tech. */
 	if (rfkill->type == type)
 		__connman_technology_add_rfkill(rfkill->index, type,
 				rfkill->softblock, rfkill->hardblock);
@@ -620,7 +620,7 @@ static gboolean technology_pending_reply(gpointer user_data)
 	struct connman_technology *technology = user_data;
 	DBusMessage *reply;
 
-	/* Power request timedout, send ETIMEDOUT. */
+	/* Power request timed out, send ETIMEDOUT. */
 	if (technology->pending_reply) {
 		reply = __connman_error_failed(technology->pending_reply, ETIMEDOUT);
 		if (reply)
@@ -1474,7 +1474,7 @@ int __connman_technology_add_device(struct connman_device *device)
 		int err = __connman_device_enable(device);
 		/*
 		 * connman_technology_add_device() calls __connman_device_enable()
-		 * but since the device is already enabled, the calls does not
+		 * but since the device is already enabled, the call does not
 		 * propagate through to connman_technology_enabled via
 		 * connman_device_set_powered.
 		 */
@@ -1578,7 +1578,7 @@ int __connman_technology_set_offlinemode(bool offlinemode)
 	 * resuming offlinemode from last saved profile. We need that
 	 * information in rfkill_update, otherwise it falls back on the
 	 * technology's persistent state. Hence we set the offline mode here
-	 * but save it & call the notifier only if its successful.
+	 * but save it & call the notifier only if it is successful.
 	 */
 
 	global_offlinemode = offlinemode;
