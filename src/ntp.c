@@ -392,7 +392,7 @@ static void decode_msg(struct ntp_data *nd, void *base, size_t len,
 		tmx.status |= STA_DEL;
 
 	if (adjtimex(&tmx) < 0) {
-		connman_error("Failed to adjust time");
+		connman_error("Failed to adjust time: %s (%d)", strerror(errno), errno);
 		nd->cb(false, nd->user_data);
 		return;
 	}
