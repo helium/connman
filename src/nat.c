@@ -55,8 +55,10 @@ static int enable_ip_forward(bool enable)
 		if (read(f, &value, sizeof(value)) < 0)
 			value = 0;
 
-		if (lseek(f, 0, SEEK_SET) < 0)
+		if (lseek(f, 0, SEEK_SET) < 0) {
+			close(f);
 			return -errno;
+		}
 	}
 
 	if (enable) {
