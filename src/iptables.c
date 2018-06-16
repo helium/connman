@@ -1729,9 +1729,11 @@ static int parse_ip_and_mask(const char *str, struct in_addr *ip,
 		if (prefixlength > 32) {
 			err = -1;
 			goto out;
+		} else if (prefixlength == 32) {
+			tmp = 0xffffffff;
+		} else {
+			tmp = ~(0xffffffff >> prefixlength);
 		}
-
-		tmp = ~(0xffffffff >> prefixlength);
 	} else {
 		tmp = 0xffffffff;
 	}
