@@ -53,7 +53,7 @@ static void test_case_1(void)
 		pool = __connman_ippool_create(23, 1, 20, NULL, NULL);
 		g_assert(pool);
 
-		__connman_ippool_unref(pool);
+		__connman_ippool_free(pool);
 	}
 
 	__connman_ippool_cleanup();
@@ -92,7 +92,7 @@ static void test_case_2(void)
 			"\tgateway %s broadcast %s mask %s", start_ip, end_ip,
 			gateway, broadcast, subnet_mask);
 
-		__connman_ippool_unref(pool);
+		__connman_ippool_free(pool);
 	}
 
 	__connman_ippool_cleanup();
@@ -157,7 +157,7 @@ static void test_case_3(void)
 	for (it = list; it; it = it->next) {
 		pool = it->data;
 
-		__connman_ippool_unref(pool);
+		__connman_ippool_free(pool);
 	}
 
 	g_slist_free(list);
@@ -219,7 +219,7 @@ static void test_case_4(void)
 
 	g_assert(flag == 1);
 
-	__connman_ippool_unref(pool);
+	__connman_ippool_free(pool);
 
 	flag = 0;
 
@@ -246,7 +246,7 @@ static void test_case_4(void)
 
 	g_assert(flag == 1);
 
-	__connman_ippool_unref(pool);
+	__connman_ippool_free(pool);
 
 	__connman_ippool_cleanup();
 }
@@ -330,8 +330,8 @@ static void test_case_5(void)
 
 	g_assert(flag == 0);
 
-	__connman_ippool_unref(pool1);
-	__connman_ippool_unref(pool2);
+	__connman_ippool_free(pool1);
+	__connman_ippool_free(pool2);
 
 	__connman_ippool_cleanup();
 }
@@ -425,8 +425,8 @@ static void test_case_6(void)
 	__connman_ippool_newaddr(25, start_ip, 24);
 	g_assert(flag == 1);
 
-	__connman_ippool_unref(pool1);
-	__connman_ippool_unref(pool2);
+	__connman_ippool_free(pool1);
+	__connman_ippool_free(pool2);
 
 	__connman_ippool_cleanup();
 }

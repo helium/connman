@@ -225,7 +225,8 @@ int __connman_tethering_set_enabled(void)
 			connman_ipaddress_calc_netmask_len(subnet_mask),
 			broadcast);
 	if (err < 0 && err != -EALREADY) {
-		__connman_ippool_unref(dhcp_ippool);
+		__connman_ippool_free(dhcp_ippool);
+		dhcp_ippool = NULL;
 		__connman_bridge_remove(BRIDGE_NAME);
 		__sync_fetch_and_sub(&tethering_enabled, 1);
 		return -EADDRNOTAVAIL;
@@ -261,7 +262,8 @@ int __connman_tethering_set_enabled(void)
 						24 * 3600, dns);
 	if (!tethering_dhcp_server) {
 		__connman_bridge_disable(BRIDGE_NAME);
-		__connman_ippool_unref(dhcp_ippool);
+		__connman_ippool_free(dhcp_ippool);
+		dhcp_ippool = NULL;
 		__connman_bridge_remove(BRIDGE_NAME);
 		__sync_fetch_and_sub(&tethering_enabled, 1);
 		return -EOPNOTSUPP;
@@ -273,7 +275,8 @@ int __connman_tethering_set_enabled(void)
 		connman_error("Cannot enable NAT %d/%s", err, strerror(-err));
 		dhcp_server_stop(tethering_dhcp_server);
 		__connman_bridge_disable(BRIDGE_NAME);
-		__connman_ippool_unref(dhcp_ippool);
+		__connman_ippool_free(dhcp_ippool);
+		dhcp_ippool = NULL;
 		__connman_bridge_remove(BRIDGE_NAME);
 		__sync_fetch_and_sub(&tethering_enabled, 1);
 		return -EOPNOTSUPP;
@@ -311,7 +314,8 @@ void __connman_tethering_set_disabled(void)
 
 	__connman_bridge_disable(BRIDGE_NAME);
 
-	__connman_ippool_unref(dhcp_ippool);
+	__connman_ippool_free(dhcp_ippool);
+	dhcp_ippool = NULL;
 
 	__connman_bridge_remove(BRIDGE_NAME);
 
@@ -399,7 +403,7 @@ static void remove_private_network(gpointer user_data)
 
 	__connman_nat_disable(BRIDGE_NAME);
 	connman_rtnl_remove_watch(pn->iface_watch);
-	__connman_ippool_unref(pn->pool);
+	__connman_ippool_free(pn->pool);
 
 	if (pn->watch > 0) {
 		g_dbus_remove_watch(connection, pn->watch);

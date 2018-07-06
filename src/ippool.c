@@ -43,8 +43,6 @@ struct address_info {
 };
 
 struct connman_ippool {
-	unsigned int refcount;
-
 	struct address_info *info;
 
 	char *gateway;
@@ -65,28 +63,9 @@ static uint32_t block_20_bits;
 static uint32_t block_24_bits;
 static uint32_t subnet_mask_24;
 
-struct connman_ippool *
-__connman_ippool_ref_debug(struct connman_ippool *pool,
-				const char *file, int line, const char *caller)
-{
-	DBG("%p ref %d by %s:%d:%s()", pool, pool->refcount + 1,
-		file, line, caller);
-
-	__sync_fetch_and_add(&pool->refcount, 1);
-
-	return pool;
-}
-
-void __connman_ippool_unref_debug(struct connman_ippool *pool,
-				const char *file, int line, const char *caller)
+void __connman_ippool_free(struct connman_ippool *pool)
 {
 	if (!pool)
-		return;
-
-	DBG("%p ref %d by %s:%d:%s()", pool, pool->refcount - 1,
-		file, line, caller);
-
-	if (__sync_fetch_and_sub(&pool->refcount, 1) != 1)
 		return;
 
 	if (pool->info) {
@@ -386,7 +365,6 @@ struct connman_ippool *__connman_ippool_create(int index,
 	info->start = block;
 	info->end = block + range;
 
-	pool->refcount = 1;
 	pool->info = info;
 	pool->collision_cb = collision_cb;
 	pool->user_data = user_data;

@@ -975,15 +975,7 @@ typedef void (*ippool_collision_cb_t) (struct connman_ippool *pool,
 int __connman_ippool_init(void);
 void __connman_ippool_cleanup(void);
 
-#define __connman_ippool_ref(ipconfig) \
-	__connman_ippool_ref_debug(ipconfig, __FILE__, __LINE__, __func__)
-#define __connman_ippool_unref(ipconfig) \
-	__connman_ippool_unref_debug(ipconfig, __FILE__, __LINE__, __func__)
-
-struct connman_ippool *__connman_ippool_ref_debug(struct connman_ippool *pool,
-			const char *file, int line, const char *caller);
-void __connman_ippool_unref_debug(struct connman_ippool *pool,
-			const char *file, int line, const char *caller);
+void __connman_ippool_free(struct connman_ippool *pool);
 
 struct connman_ippool *__connman_ippool_create(int index,
 					unsigned int start,

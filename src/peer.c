@@ -82,7 +82,7 @@ static void stop_dhcp_server(struct connman_peer *peer)
 	peer->dhcp_server = NULL;
 
 	if (peer->ip_pool)
-		__connman_ippool_unref(peer->ip_pool);
+		__connman_ippool_free(peer->ip_pool);
 	peer->ip_pool = NULL;
 	peer->lease_ip = 0;
 }
