@@ -111,6 +111,7 @@ struct _GDHCPClient {
 	GList *request_list;
 	GHashTable *code_value_hash;
 	GHashTable *send_value_hash;
+	GHashTable *secs_bcast_hash;
 	GDHCPClientEventFunc lease_available_cb;
 	gpointer lease_available_data;
 	GDHCPClientEventFunc ipv4ll_available_cb;
@@ -466,10 +467,16 @@ static int send_discover(GDHCPClient *dhcp_client, uint32_t requested)
 	 * versa. In the receiving side we then find out what kind of packet
 	 * the server can send.
 	 */
+	dhcp_client->request_bcast = dhcp_client->retry_times % 2;
+
+	if (dhcp_client->request_bcast)
+		g_hash_table_add(dhcp_client->secs_bcast_hash,
+				GINT_TO_POINTER(packet.secs));
+
 	return dhcp_send_raw_packet(&packet, INADDR_ANY, CLIENT_PORT,
 				INADDR_BROADCAST, SERVER_PORT,
 				MAC_BCAST_ADDR, dhcp_client->ifindex,
-				dhcp_client->retry_times % 2);
+				dhcp_client->request_bcast);
 }
 
 int g_dhcp_client_decline(GDHCPClient *dhcp_client, uint32_t requested)
@@ -1192,6 +1199,8 @@ GDHCPClient *g_dhcp_client_new(GDHCPType type,
 				g_direct_equal, NULL, remove_option_value);
 	dhcp_client->send_value_hash = g_hash_table_new_full(g_direct_hash,
 				g_direct_equal, NULL, g_free);
+	dhcp_client->secs_bcast_hash = g_hash_table_new(g_direct_hash,
+				g_direct_equal);
 	dhcp_client->request_list = NULL;
 	dhcp_client->require_list = NULL;
 	dhcp_client->duid = NULL;
@@ -2370,14 +2379,28 @@ static gboolean listener_event(GIOChannel *channel, GIOCondition condition,
 
 		dhcp_client->state = REQUESTING;
 
-		if (dst_addr.sin_addr.s_addr == INADDR_BROADCAST)
-			dhcp_client->request_bcast = true;
-		else
-			dhcp_client->request_bcast = false;
+		/*
+		 * RFC2131:
+		 *
+		 *   If unicasting is not possible, the message MAY be
+		 *   sent as an IP broadcast using an IP broadcast address
+		 *   (preferably 0xffffffff) as the IP destination address
+		 *   and the link-layer broadcast address as the link-layer
+		 *   destination address.
+		 *
+		 * For interoperability reasons, if the response is an IP
+		 * broadcast, let's reuse broadcast flag from DHCPDISCOVER
+		 * to which the server has responded. Some servers are picky
+		 * about this flag.
+		 */
+		dhcp_client->request_bcast =
+			dst_addr.sin_addr.s_addr == INADDR_BROADCAST &&
+			g_hash_table_contains(dhcp_client->secs_bcast_hash,
+				GINT_TO_POINTER(packet.secs));
 
-		debug(dhcp_client, "init ip %s -> %sadding broadcast flag",
-			inet_ntoa(dst_addr.sin_addr),
-			dhcp_client->request_bcast ? "" : "not ");
+		debug(dhcp_client, "init ip %s secs %hu -> broadcast flag %s",
+			inet_ntoa(dst_addr.sin_addr), packet.secs,
+			dhcp_client->request_bcast ? "on" : "off");
 
 		start_request(dhcp_client);
 
@@ -2827,6 +2850,7 @@ int g_dhcp_client_start(GDHCPClient *dhcp_client, const char *last_address)
 		__connman_util_get_random(&rand);
 		dhcp_client->xid = rand;
 		dhcp_client->start = time(NULL);
+		g_hash_table_remove_all(dhcp_client->secs_bcast_hash);
 	}
 
 	if (!last_address || oldstate == DECLINED) {
@@ -3227,6 +3251,7 @@ void g_dhcp_client_unref(GDHCPClient *dhcp_client)
 
 	g_hash_table_destroy(dhcp_client->code_value_hash);
 	g_hash_table_destroy(dhcp_client->send_value_hash);
+	g_hash_table_destroy(dhcp_client->secs_bcast_hash);
 
 	g_free(dhcp_client);
 }
