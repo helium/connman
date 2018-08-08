@@ -190,6 +190,40 @@ done:
 	return err;
 }
 
+bool __connman_inet_is_any_addr(const char *address, int family)
+{
+	bool ret = false;
+	struct addrinfo hints;
+	struct addrinfo *result = NULL;
+	struct sockaddr_in6 *in6 = NULL;
+	struct sockaddr_in *in4 = NULL;
+
+	if (!address || !*address)
+		goto out;
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+
+	hints.ai_family = family;
+
+	if (getaddrinfo(address, NULL, &hints, &result))
+		goto out;
+
+	if (result) {
+		if (result->ai_family == AF_INET6) {
+			in6 = (struct sockaddr_in6*)result->ai_addr;
+			ret = IN6_IS_ADDR_UNSPECIFIED(&in6->sin6_addr);
+		} else if (result->ai_family == AF_INET) {
+			in4 = (struct sockaddr_in*)result->ai_addr;
+			ret = in4->sin_addr.s_addr == INADDR_ANY;
+		}
+
+		freeaddrinfo(result);
+	}
+
+out:
+	return ret;
+}
+
 int connman_inet_ifindex(const char *name)
 {
 	struct ifreq ifr;
@@ -512,7 +546,17 @@ int connman_inet_add_network_route(int index, const char *host,
 
 	memset(&rt, 0, sizeof(rt));
 	rt.rt_flags = RTF_UP;
-	if (gateway)
+
+	/*
+	 * Set RTF_GATEWAY only when gateway is set and the gateway IP address
+	 * is not IPv4 any address (0.0.0.0). If the given gateway IP address is
+	 * any address adding of route will fail when RTF_GATEWAY set. Passing
+	 * gateway as NULL or INADDR_ANY should have the same effect. Setting
+	 * the gateway address later to the struct is not affected by this,
+	 * since given IPv4 any address (0.0.0.0) equals the value set with
+	 * INADDR_ANY.
+	 */
+	if (gateway && !__connman_inet_is_any_addr(gateway, AF_INET))
 		rt.rt_flags |= RTF_GATEWAY;
 	if (!netmask)
 		rt.rt_flags |= RTF_HOST;
@@ -675,10 +719,17 @@ int connman_inet_add_ipv6_network_route(int index, const char *host,
 
 	rt.rtmsg_flags = RTF_UP | RTF_HOST;
 
-	if (gateway) {
+	/*
+	 * Set RTF_GATEWAY only when gateway is set, the gateway IP address is
+	 * not IPv6 any address (e.g., ::) and the address is valid (conversion
+	 * succeeds). If the given gateway IP address is any address then
+	 * adding of route will fail when RTF_GATEWAY set. Passing gateway as
+	 * NULL or IPv6 any address should have the same effect.
+	 */
+
+	if (gateway && !__connman_inet_is_any_addr(gateway, AF_INET6) &&
+		inet_pton(AF_INET6, gateway, &rt.rtmsg_gateway) > 0)
 		rt.rtmsg_flags |= RTF_GATEWAY;
-		inet_pton(AF_INET6, gateway, &rt.rtmsg_gateway);
-	}
 
 	rt.rtmsg_metric = 1;
 	rt.rtmsg_ifindex = index;
