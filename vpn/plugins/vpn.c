@@ -378,6 +378,7 @@ static int vpn_create_tun(struct vpn_provider *provider, int flags)
 	}
 
 	data->tun_flags = flags;
+	g_free(data->if_name);
 	data->if_name = (char *)g_strdup(ifr.ifr_name);
 	if (!data->if_name) {
 		connman_error("Failed to allocate memory");
