@@ -484,19 +484,19 @@ static void connect_reply(DBusPendingCall *call, void *user_data)
 
 	if (dbus_set_error_from_message(&error, reply)) {
 		int err = errorstr2val(error.name);
+
 		if (err != -EINPROGRESS) {
 			connman_error("Connect reply: %s (%s)", error.message,
 								error.name);
-			dbus_error_free(&error);
-
 			DBG("data %p cb_data %p", data, cb_data);
+
 			if (cb_data) {
 				cb_data->callback(cb_data->message, err, NULL);
 				free_config_cb_data(cb_data);
 				data->cb_data = NULL;
 			}
-			goto done;
 		}
+
 		dbus_error_free(&error);
 	}
 
@@ -506,7 +506,6 @@ static void connect_reply(DBusPendingCall *call, void *user_data)
 	 * state.
 	 */
 
-done:
 	dbus_message_unref(reply);
 
 	dbus_pending_call_unref(call);
