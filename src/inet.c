@@ -3352,6 +3352,9 @@ char **__connman_inet_get_pnp_nameservers(const char *pnp_file)
 	if (!pnp_file)
 		pnp_file = "/proc/net/pnp";
 
+	if (!g_file_test(pnp_file, G_FILE_TEST_EXISTS))
+		goto out;
+
 	if (!g_file_get_contents(pnp_file, &pnp, NULL, &error)) {
 		connman_error("%s: Cannot read %s %s\n", __func__,
 				pnp_file, error->message);
