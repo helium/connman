@@ -1872,12 +1872,14 @@ int __connman_network_clear_ipconfig(struct connman_network *network,
 	case CONNMAN_IPCONFIG_METHOD_OFF:
 	case CONNMAN_IPCONFIG_METHOD_FIXED:
 		return -EINVAL;
-	case CONNMAN_IPCONFIG_METHOD_AUTO:
-		release_dhcpv6(network);
-		break;
 	case CONNMAN_IPCONFIG_METHOD_MANUAL:
 		__connman_ipconfig_address_remove(ipconfig);
 		break;
+	case CONNMAN_IPCONFIG_METHOD_AUTO:
+		release_dhcpv6(network);
+		if (type == CONNMAN_IPCONFIG_TYPE_IPV6)
+			break;
+		/* fall through */
 	case CONNMAN_IPCONFIG_METHOD_DHCP:
 		remove_dhcp_timeout(network);
 		__connman_dhcp_stop(ipconfig_ipv4);
