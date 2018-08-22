@@ -4333,18 +4333,10 @@ static DBusMessage *connect_service(DBusConnection *conn,
 	err = __connman_service_connect(service,
 			CONNMAN_SERVICE_CONNECT_REASON_USER);
 
-	if (err == -EINPROGRESS)
-		return NULL;
+	if (err != -EINPROGRESS)
+		reply_pending(service, -err);
 
-	if (service->pending) {
-		dbus_message_unref(service->pending);
-		service->pending = NULL;
-	}
-
-	if (err < 0)
-		return __connman_error_failed(msg, -err);
-
-	return g_dbus_create_reply(msg, DBUS_TYPE_INVALID);
+	return NULL;
 }
 
 static DBusMessage *disconnect_service(DBusConnection *conn,
@@ -6491,7 +6483,6 @@ int __connman_service_connect(struct connman_service *service,
 
 			return err;
 		}
-		reply_pending(service, -err);
 	}
 
 	return err;
@@ -6507,8 +6498,6 @@ int __connman_service_disconnect(struct connman_service *service)
 	service->proxy = CONNMAN_SERVICE_PROXY_METHOD_UNKNOWN;
 
 	connman_agent_cancel(service);
-
-	reply_pending(service, ECONNABORTED);
 
 	__connman_stats_service_unregister(service);
 
