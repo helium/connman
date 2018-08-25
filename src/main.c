@@ -320,6 +320,8 @@ static void parse_config(GKeyFile *config)
 		connman_settings.auto_connect =
 			parse_service_types(default_auto_connect, CONF_ARRAY_SIZE(default_auto_connect));
 
+	g_clear_error(&error);
+
 	str_list = __connman_config_get_string_list(config, "General",
 			CONF_FAVORITE_TECHS, &len, &error);
 
