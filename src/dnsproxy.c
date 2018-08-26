@@ -3970,4 +3970,9 @@ void __connman_dnsproxy_cleanup(void)
 	g_hash_table_destroy(listener_table);
 
 	g_hash_table_destroy(partial_tcp_req_table);
+
+	if (ipv4_resolve)
+		g_resolv_unref(ipv4_resolve);
+	if (ipv6_resolve)
+		g_resolv_unref(ipv6_resolve);
 }
