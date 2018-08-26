@@ -11,6 +11,8 @@ def extract_values(values):
 		else:
 			if key in ["Servers", "Excludes"]:
 				val += extract_list(values[key])
+			elif key in ["Ethernet", "IPv4"]:
+				val += extract_values(values[key])
 			else:
 				val += str(values[key])
 	val += " }"
@@ -38,7 +40,8 @@ for path, properties in manager.GetServices():
 		if key in ["IPv4", "IPv4.Configuration",
 				"IPv6", "IPv6.Configuration",
 					"Proxy", "Proxy.Configuration",
-						"Ethernet", "Provider"]:
+					"Ethernet", "Provider",
+					"LastAddressConflict"]:
 			val = extract_values(properties[key])
 		elif key in ["Nameservers", "Nameservers.Configuration",
 			     "Domains", "Domains.Configuration",
