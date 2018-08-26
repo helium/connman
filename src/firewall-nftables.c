@@ -402,6 +402,8 @@ static int table_cmd(struct mnl_socket *nl, struct nftnl_table *t,
         uint32_t seq = 0;
         int err;
 
+	bzero(buf, sizeof(buf));
+
         batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
         nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
         mnl_nlmsg_batch_next(batch);
@@ -432,6 +434,8 @@ static int chain_cmd(struct mnl_socket *nl, struct nftnl_chain *chain,
         struct nlmsghdr *nlh;
         uint32_t seq = 0;
         int err;
+
+	bzero(buf, sizeof(buf));
 
         batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
         nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
@@ -464,6 +468,8 @@ static int rule_cmd(struct mnl_socket *nl, struct nftnl_rule *rule,
         struct nlmsghdr *nlh;
         uint32_t seq = 0;
         int err;
+
+	bzero(buf, sizeof(buf));
 
 	debug_netlink_dump_rule(rule);
 
