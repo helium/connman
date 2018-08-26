@@ -67,7 +67,7 @@
 #define CONNMAN_CHAIN_NAT_POST "nat-postrouting"
 #define CONNMAN_CHAIN_ROUTE_OUTPUT "route-output"
 
-static bool debug_enabled = true;
+static bool debug_enabled = false;
 
 struct firewall_handle {
 	uint64_t handle;
