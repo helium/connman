@@ -36,6 +36,7 @@ extern "C" {
 struct acd_host;
 
 struct acd_host *acd_host_new(int ifindex, const char* path);
+void acd_host_free(struct acd_host *acd);
 int acd_host_start(struct acd_host *acd, uint32_t ip);
 void acd_host_stop(struct acd_host *acd);
 

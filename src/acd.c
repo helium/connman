@@ -111,6 +111,15 @@ static void debug(struct acd_host *acd, const char *format, ...)
 	va_end(ap);
 }
 
+void acd_host_free(struct acd_host *acd)
+{
+	if (!acd)
+		return;
+
+	g_free(acd->interface);
+	g_free(acd);
+}
+
 struct acd_host *acd_host_new(int ifindex, const char *path)
 {
 	struct acd_host *acd;
@@ -160,8 +169,7 @@ struct acd_host *acd_host_new(int ifindex, const char *path)
 	return acd;
 
 error:
-	g_free(acd->interface);
-	g_free(acd);
+	acd_host_free(acd);
 	return NULL;
 }
 
