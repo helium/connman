@@ -580,7 +580,6 @@ err:
 		close(nd->transmit_fd);
 
 	nd->cb(false, nd->user_data);
-	return;
 }
 
 int __connman_ntp_start(char *server, __connman_ntp_cb_t callback,

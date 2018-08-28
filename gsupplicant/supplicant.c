@@ -1501,7 +1501,6 @@ static void interface_network_added(DBusMessageIter *iter, void *user_data)
 static void interface_network_removed(DBusMessageIter *iter, void *user_data)
 {
 	SUPPLICANT_DBG("");
-	return;
 }
 
 static char *create_name(unsigned char *ssid, int ssid_len)

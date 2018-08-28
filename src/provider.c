@@ -745,8 +745,6 @@ static void provider_service_changed(struct connman_service *service,
 	DBG("disconnect %p index %d", provider, vpn_index);
 
 	connman_provider_disconnect(provider);
-
-	return;
 }
 
 static struct connman_notifier provider_notifier = {

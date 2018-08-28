@@ -75,8 +75,6 @@ static void save_timeservers(char **servers)
 	__connman_storage_save_global(keyfile);
 
 	g_key_file_free(keyfile);
-
-	return;
 }
 
 static char **load_timeservers(void)
@@ -161,8 +159,6 @@ static void timeserver_sync_start(void)
 
 	resolv_id = g_resolv_lookup_hostname(resolv, ts_current,
 						resolv_result, NULL);
-
-	return;
 }
 
 static gboolean timeserver_sync_restart(gpointer user_data)
@@ -214,8 +210,6 @@ static void sync_next()
 
 	resolv_id = g_resolv_lookup_hostname(resolv, ts_current,
 						resolv_result, NULL);
-
-	return;
 }
 
 GSList *__connman_timeserver_add_list(GSList *server_list,

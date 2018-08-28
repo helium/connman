@@ -792,8 +792,6 @@ static void move_before_append_args(DBusMessageIter *iter, void *user_data)
 
 	dbus_message_iter_append_basic(iter,
 				DBUS_TYPE_OBJECT_PATH, &path);
-
-	return;
 }
 
 static int cmd_service_move_before(char *args[], int num,
@@ -852,8 +850,6 @@ static void move_after_append_args(DBusMessageIter *iter, void *user_data)
 
 	dbus_message_iter_append_basic(iter,
 				DBUS_TYPE_OBJECT_PATH, &path);
-
-	return;
 }
 
 static int cmd_service_move_after(char *args[], int num,
@@ -1930,8 +1926,6 @@ static void session_create_append_dict(DBusMessageIter *iter, void *user_data)
 
 		index += append.values;
 	}
-
-	return;
 }
 
 static void session_create_append(DBusMessageIter *iter, void *user_data)

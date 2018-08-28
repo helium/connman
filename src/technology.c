@@ -196,8 +196,6 @@ done:
 	__connman_storage_save_global(keyfile);
 
 	g_key_file_free(keyfile);
-
-	return;
 }
 
 static void tethering_changed(struct connman_technology *technology)
@@ -435,8 +433,6 @@ done:
 	g_free(identifier);
 
 	g_key_file_free(keyfile);
-
-	return;
 }
 
 bool __connman_technology_get_offlinemode(void)
@@ -474,8 +470,6 @@ static void connman_technology_save_offlinemode(void)
 	}
 
 	g_key_file_free(keyfile);
-
-	return;
 }
 
 static bool connman_technology_load_offlinemode(void)

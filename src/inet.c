@@ -2523,8 +2523,6 @@ out:
 		data->callback(addr, index, data->user_data);
 
 	g_free(data);
-
-	return;
 }
 
 /*

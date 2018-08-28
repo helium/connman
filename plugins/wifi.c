@@ -2732,8 +2732,6 @@ static void ap_create_fail(GSupplicantInterface *interface)
 		g_free(wifi->tethering_param);
 		wifi->tethering_param = NULL;
 	}
-
-	return;
 }
 
 static unsigned char calculate_strength(GSupplicantNetwork *supplicant_network)
