@@ -5264,9 +5264,6 @@ int __connman_service_set_favorite_delayed(struct connman_service *service,
 
 	service->favorite = favorite;
 
-	if (!delay_ordering)
-		__connman_service_get_order(service);
-
 	favorite_changed(service);
 
 	if (!delay_ordering) {
@@ -6978,33 +6975,6 @@ const char *__connman_service_get_name(struct connman_service *service)
 enum connman_service_state __connman_service_get_state(struct connman_service *service)
 {
 	return service->state;
-}
-
-unsigned int __connman_service_get_order(struct connman_service *service)
-{
-	unsigned int order = 0;
-
-	if (!service)
-		return 0;
-
-	service->order = 0;
-
-	if (!service->favorite)
-		return 0;
-
-	if (service == service_list->data)
-		order = 1;
-
-	if (service->type == CONNMAN_SERVICE_TYPE_VPN &&
-			!service->do_split_routing) {
-		service->order = 10;
-		order = 10;
-	}
-
-	DBG("service %p name %s order %d split %d", service, service->name,
-		order, service->do_split_routing);
-
-	return order;
 }
 
 static enum connman_service_type convert_network_type(struct connman_network *network)
