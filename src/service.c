@@ -7349,6 +7349,7 @@ __connman_service_create_from_provider(struct connman_provider *provider)
 		return NULL;
 
 	service->type = CONNMAN_SERVICE_TYPE_VPN;
+	service->order = service->do_split_routing ? 0 : 10;
 	service->provider = connman_provider_ref(provider);
 	service->autoconnect = false;
 	service->favorite = true;
