@@ -1012,12 +1012,18 @@ bool __connman_connection_update_gateway(void)
 		}
 	}
 
-	if (updated && default_gateway) {
-		if (default_gateway->ipv4_gateway)
+	/*
+	 * Set default gateway if it has been updated or if it has not been
+	 * set as active yet.
+	 */
+	if (default_gateway) {
+		if (default_gateway->ipv4_gateway &&
+			(updated || !default_gateway->ipv4_gateway->active))
 			set_default_gateway(default_gateway,
 					CONNMAN_IPCONFIG_TYPE_IPV4);
 
-		if (default_gateway->ipv6_gateway)
+		if (default_gateway->ipv6_gateway &&
+			(updated || !default_gateway->ipv6_gateway->active))
 			set_default_gateway(default_gateway,
 					CONNMAN_IPCONFIG_TYPE_IPV6);
 	}
