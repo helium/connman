@@ -460,6 +460,7 @@ static void set_default_gateway(struct gateway_data *data,
 							"0.0.0.0") == 0) {
 		if (connman_inet_set_gateway_interface(index) < 0)
 			return;
+		data->ipv4_gateway->active = true;
 		goto done;
 	}
 
@@ -468,6 +469,7 @@ static void set_default_gateway(struct gateway_data *data,
 							"::") == 0) {
 		if (connman_inet_set_ipv6_gateway_interface(index) < 0)
 			return;
+		data->ipv6_gateway->active = true;
 		goto done;
 	}
 
@@ -534,6 +536,7 @@ static void unset_default_gateway(struct gateway_data *data,
 			g_strcmp0(data->ipv4_gateway->gateway,
 							"0.0.0.0") == 0) {
 		connman_inet_clear_gateway_interface(index);
+		data->ipv4_gateway->active = false;
 		return;
 	}
 
@@ -541,6 +544,7 @@ static void unset_default_gateway(struct gateway_data *data,
 			g_strcmp0(data->ipv6_gateway->gateway,
 							"::") == 0) {
 		connman_inet_clear_ipv6_gateway_interface(index);
+		data->ipv6_gateway->active = false;
 		return;
 	}
 
