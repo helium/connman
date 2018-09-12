@@ -1416,6 +1416,7 @@ static int ipv4ll_recv_arp_packet(GDHCPClient *dhcp_client)
 	uint32_t ip_requested;
 	int source_conflict;
 	int target_conflict;
+	guint timeout_ms;
 
 	memset(&arp, 0, sizeof(arp));
 	bytes = read(dhcp_client->listener_sockfd, &arp, sizeof(arp));
@@ -1464,23 +1465,20 @@ static int ipv4ll_recv_arp_packet(GDHCPClient *dhcp_client)
 
 	ipv4ll_stop(dhcp_client);
 
-	if (dhcp_client->conflicts < MAX_CONFLICTS) {
-		/*restart whole state machine*/
-		dhcp_client->retry_times++;
-		dhcp_client->timeout =
-			g_timeout_add_full(G_PRIORITY_HIGH,
-					__connman_util_random_delay_ms(PROBE_WAIT),
-					send_probe_packet,
-					dhcp_client,
-					NULL);
-	}
-	/* Here we got a lot of conflicts, RFC3927 states that we have
+	/* If we got a lot of conflicts, RFC3927 states that we have
 	 * to wait RATE_LIMIT_INTERVAL before retrying,
-	 * but we just report failure.
 	 */
-	else if (dhcp_client->no_lease_cb)
-			dhcp_client->no_lease_cb(dhcp_client,
-						dhcp_client->no_lease_data);
+	if (dhcp_client->conflicts < MAX_CONFLICTS)
+		timeout_ms = __connman_util_random_delay_ms(PROBE_WAIT);
+	else
+		timeout_ms = RATE_LIMIT_INTERVAL * 1000;
+	dhcp_client->retry_times++;
+	dhcp_client->timeout =
+		g_timeout_add_full(G_PRIORITY_HIGH,
+				timeout_ms,
+				send_probe_packet,
+				dhcp_client,
+				NULL);
 
 	return 0;
 }
