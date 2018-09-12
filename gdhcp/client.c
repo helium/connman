@@ -1532,6 +1532,12 @@ static gboolean request_timeout(gpointer user_data)
 	return FALSE;
 }
 
+static void listener_watch_destroy(gpointer user_data)
+{
+	GDHCPClient *dhcp_client = user_data;
+	g_dhcp_client_unref(dhcp_client);
+}
+
 static gboolean listener_event(GIOChannel *channel, GIOCondition condition,
 							gpointer user_data);
 
@@ -1591,8 +1597,8 @@ static int switch_listening_mode(GDHCPClient *dhcp_client,
 	dhcp_client->listener_watch =
 			g_io_add_watch_full(listener_channel, G_PRIORITY_HIGH,
 				G_IO_IN | G_IO_NVAL | G_IO_ERR | G_IO_HUP,
-						listener_event, dhcp_client,
-								NULL);
+						listener_event, g_dhcp_client_ref(dhcp_client),
+								listener_watch_destroy);
 	g_io_channel_unref(listener_channel);
 
 	return 0;
