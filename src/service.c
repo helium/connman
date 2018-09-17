@@ -6956,9 +6956,9 @@ struct connman_service *__connman_service_lookup_from_ident(const char *identifi
 	return lookup_by_identifier(identifier);
 }
 
-const char *__connman_service_get_ident(struct connman_service *service)
+const char *connman_service_get_identifier(struct connman_service *service)
 {
-	return service->identifier;
+	return service ? service->identifier : NULL;
 }
 
 const char *__connman_service_get_path(struct connman_service *service)

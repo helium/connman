@@ -1253,7 +1253,7 @@ static int try_provision_service(struct connman_config_service *config,
 	}
 
 	DBG("service %p ident %s", service,
-					__connman_service_get_ident(service));
+				connman_service_get_identifier(service));
 
 	if (config->mac) {
 		struct connman_device *device;
@@ -1356,7 +1356,7 @@ static int try_provision_service(struct connman_config_service *config,
 
 	__connman_service_disconnect(service);
 
-	service_id = __connman_service_get_ident(service);
+	service_id = connman_service_get_identifier(service);
 	config->service_identifiers =
 		g_slist_prepend(config->service_identifiers,
 				g_strdup(service_id));

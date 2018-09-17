@@ -196,7 +196,7 @@ static int set_duid(struct connman_service *service,
 	unsigned char *duid;
 	int duid_len;
 
-	ident = __connman_service_get_ident(service);
+	ident = connman_service_get_identifier(service);
 
 	keyfile = connman_storage_load_service(ident);
 	if (!keyfile)
