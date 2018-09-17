@@ -6571,7 +6571,7 @@ static struct connman_service *lookup_by_identifier(const char *identifier)
 
 struct connman_service *connman_service_lookup_from_identifier(const char* identifier)
 {
-	return lookup_by_identifier(identifier);
+	return identifier ? lookup_by_identifier(identifier) : NULL;
 }
 
 struct provision_user_data {
@@ -6949,11 +6949,6 @@ struct connman_service *__connman_service_lookup_from_index(int index)
 	}
 
 	return NULL;
-}
-
-struct connman_service *__connman_service_lookup_from_ident(const char *identifier)
-{
-	return lookup_by_identifier(identifier);
 }
 
 const char *connman_service_get_identifier(struct connman_service *service)

@@ -196,7 +196,7 @@ static void unregister_service(gpointer data)
 							list = list->next) {
 		service_id = list->data;
 
-		service = __connman_service_lookup_from_ident(service_id);
+		service = connman_service_lookup_from_identifier(service_id);
 		if (service) {
 			__connman_service_set_immutable(service, false);
 			__connman_service_set_config(service, NULL, NULL);
