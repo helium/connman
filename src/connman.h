@@ -679,7 +679,6 @@ struct connman_service *__connman_service_lookup_from_ident(const char *identifi
 struct connman_service *__connman_service_create_from_network(struct connman_network *network);
 struct connman_service *__connman_service_create_from_provider(struct connman_provider *provider);
 bool __connman_service_index_is_default(int index);
-struct connman_service *__connman_service_get_default(void);
 void __connman_service_update_from_network(struct connman_network *network);
 void __connman_service_remove_from_network(struct connman_network *network);
 void __connman_service_read_ip4config(struct connman_service *service);

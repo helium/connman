@@ -299,7 +299,7 @@ static gboolean ts_recheck(gpointer user_data)
 {
 	GSList *ts;
 
-	ts = __connman_timeserver_get_all(__connman_service_get_default());
+	ts = __connman_timeserver_get_all(connman_service_get_default());
 
 	if (!ts) {
 		DBG("timeservers disabled");
@@ -365,7 +365,7 @@ int __connman_timeserver_sync(struct connman_service *default_service)
 	if (default_service)
 		service = default_service;
 	else
-		service = __connman_service_get_default();
+		service = connman_service_get_default();
 
 	if (!service)
 		return -EINVAL;

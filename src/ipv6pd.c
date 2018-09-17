@@ -138,7 +138,7 @@ static gboolean do_setup(gpointer data)
 	if (!default_interface)
 		DBG("No uplink connection, retrying prefix delegation");
 
-	ret = setup_prefix_delegation(__connman_service_get_default());
+	ret = setup_prefix_delegation(connman_service_get_default());
 	if (ret < 0 && ret != -EINPROGRESS)
 		return TRUE; /* delegation error, try again */
 
@@ -154,7 +154,7 @@ static void dhcpv6_renew_callback(struct connman_network *network,
 	if (status == CONNMAN_DHCPV6_STATUS_SUCCEED)
 		dhcpv6_callback(network, status, data);
 	else
-		setup_prefix_delegation(__connman_service_get_default());
+		setup_prefix_delegation(connman_service_get_default());
 }
 
 static void cleanup(void)
@@ -262,7 +262,7 @@ static void update_default_interface(struct connman_service *service)
 static void update_ipconfig(struct connman_service *service,
 				struct connman_ipconfig *ipconfig)
 {
-	if (!service || service != __connman_service_get_default())
+	if (!service || service != connman_service_get_default())
 		return;
 
 	if (ipconfig != __connman_service_get_ip6config(service))
@@ -326,7 +326,7 @@ int __connman_ipv6pd_setup(const char *bridge)
 		DBG("Cannot receive router solicitation %d/%s",
 			err, strerror(-err));
 
-	service = __connman_service_get_default();
+	service = connman_service_get_default();
 	if (service) {
 		/*
 		 * We have an uplink connection already, try to use it.

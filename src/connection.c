@@ -561,7 +561,7 @@ static struct gateway_data *find_default_gateway(void)
 {
 	struct connman_service *service;
 
-	service = __connman_service_get_default();
+	service = connman_service_get_default();
 	if (!service)
 		return NULL;
 
