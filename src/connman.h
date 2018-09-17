@@ -849,11 +849,6 @@ int __connman_peer_service_unregister(const char *owner,
 
 #include <connman/session.h>
 
-typedef void (* service_iterate_cb) (struct connman_service *service,
-					void *user_data);
-
-int __connman_service_iterate_services(service_iterate_cb cb, void *user_data);
-
 void __connman_service_mark_dirty();
 void __connman_service_save(struct connman_service *service);
 
