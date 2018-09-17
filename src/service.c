@@ -6971,9 +6971,9 @@ const char *__connman_service_get_name(struct connman_service *service)
 	return service->name;
 }
 
-enum connman_service_state __connman_service_get_state(struct connman_service *service)
+enum connman_service_state connman_service_get_state(struct connman_service *service)
 {
-	return service->state;
+	return service ? service->state : CONNMAN_SERVICE_STATE_UNKNOWN;
 }
 
 static enum connman_service_type convert_network_type(struct connman_network *network)
