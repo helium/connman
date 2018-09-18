@@ -5770,13 +5770,6 @@ static int service_indicate_state(struct connman_service *service)
 
 		reply_pending(service, ECONNABORTED);
 
-		def_service = connman_service_get_default();
-
-		if (!__connman_notifier_is_connected() &&
-			def_service &&
-				def_service->provider)
-			connman_provider_disconnect(def_service->provider);
-
 		default_changed();
 
 		__connman_wispr_stop(service);
