@@ -1871,15 +1871,40 @@ static struct connman_service *vpn_find_online_transport()
 static bool vpn_is_valid_transport(struct connman_service *transport)
 {
 	if (transport) {
+		struct connman_service *online;
+
 		switch (connman_service_get_state(transport)) {
 		case CONNMAN_SERVICE_STATE_READY:
-			return vpn_find_online_transport() == NULL;
+			online = vpn_find_online_transport();
+
+			/* Stay connected if there are no online services */
+			if (!online)
+				return true;
+
+			DBG("%s is ready, %s is online, disconnecting",
+				connman_service_get_identifier(transport),
+				connman_service_get_identifier(online));
+			break;
+
 		case CONNMAN_SERVICE_STATE_ONLINE:
-			return vpn_find_online_transport() == transport;
+			online = vpn_find_online_transport();
+
+			/* Check if our transport is still the default */
+			if (online == transport)
+				return true;
+
+			DBG("%s is replaced by %s as default, disconnecting",
+				connman_service_get_identifier(transport),
+				connman_service_get_identifier(online));
+			break;
+
 		default:
 			break;
 		}
+	} else {
+		DBG("transport gone");
 	}
+
 	return false;
 }
 
@@ -1891,7 +1916,6 @@ static void vpn_disconnect_check_provider(struct connection_data *data)
 						(data->service_ident);
 
 		if (!vpn_is_valid_transport(service)) {
-			DBG("transport gone");
 			disconnect_provider(data);
 		}
 	}
