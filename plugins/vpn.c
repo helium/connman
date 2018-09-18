@@ -72,6 +72,7 @@ struct connection_data {
 	struct connman_provider *provider;
 	int index;
 	DBusPendingCall *call;
+	DBusPendingCall *disconnect_call;
 	bool connect_pending;
 	struct config_create_data *cb_data;
 	char *service_ident;
@@ -919,11 +920,9 @@ static int provider_connect(struct connman_provider *provider,
 
 static void disconnect_reply(DBusPendingCall *call, void *user_data)
 {
+	struct connection_data *data = user_data;
 	DBusMessage *reply;
 	DBusError error;
-
-	if (!dbus_pending_call_get_completed(call))
-		return;
 
 	DBG("user %p", user_data);
 
@@ -939,16 +938,21 @@ static void disconnect_reply(DBusPendingCall *call, void *user_data)
 
 done:
 	dbus_message_unref(reply);
-
 	dbus_pending_call_unref(call);
+	data->disconnect_call = NULL;
 }
 
 static int disconnect_provider(struct connection_data *data)
 {
-	DBusPendingCall *call;
+	bool sent;
 	DBusMessage *message;
 
 	DBG("data %p path %s", data, data->path);
+
+	if (data->disconnect_call) {
+		DBG("already disconnecting");
+		return -EINVAL;
+	}
 
 	message = dbus_message_new_method_call(VPN_SERVICE, data->path,
 					VPN_CONNECTION_INTERFACE,
@@ -956,36 +960,25 @@ static int disconnect_provider(struct connection_data *data)
 	if (!message)
 		return -ENOMEM;
 
-	if (!dbus_connection_send_with_reply(connection, message,
-						&call, DBUS_TIMEOUT)) {
+	sent = dbus_connection_send_with_reply(connection, message,
+					&data->disconnect_call, DBUS_TIMEOUT);
+	dbus_message_unref(message);
+
+	if (!sent || !data->disconnect_call) {
 		connman_error("Unable to call %s.%s()",
 			VPN_CONNECTION_INTERFACE, VPN_DISCONNECT);
-		dbus_message_unref(message);
 		return -EINVAL;
 	}
 
-	if (!call) {
-		dbus_message_unref(message);
-		return -EINVAL;
-	}
-
-	dbus_pending_call_set_notify(call, disconnect_reply, NULL, NULL);
-
-	dbus_message_unref(message);
+	dbus_pending_call_set_notify(data->disconnect_call, disconnect_reply,
+								data, NULL);
 
 	g_free(data->service_ident);
 	data->service_ident = NULL;
 
 	connman_provider_set_state(data->provider,
 					CONNMAN_PROVIDER_STATE_DISCONNECT);
-	/*
-	 * We return 0 here instead of -EINPROGRESS because
-	 * __connman_service_disconnect() needs to return something
-	 * to gdbus so that gdbus will not call Disconnect() more
-	 * than once. This way we do not need to pass the dbus reply
-	 * message around the code.
-	 */
-	return 0;
+	return -EINPROGRESS;
 }
 
 static int provider_disconnect(struct connman_provider *provider)
@@ -1509,13 +1502,8 @@ static void destroy_provider(struct connection_data *data)
 	if (provider_is_connected(data))
 		connman_provider_disconnect(data->provider);
 
-	if (data->call)
-		dbus_pending_call_cancel(data->call);
-
 	connman_provider_set_data(data->provider, NULL);
-
 	connman_provider_remove(data->provider);
-
 	data->provider = NULL;
 }
 
@@ -1527,6 +1515,16 @@ static void connection_destroy(gpointer hash_data)
 
 	if (data->provider)
 		destroy_provider(data);
+
+	if (data->call) {
+		dbus_pending_call_cancel(data->call);
+		dbus_pending_call_unref(data->call);
+	}
+
+	if (data->disconnect_call) {
+		dbus_pending_call_cancel(data->disconnect_call);
+		dbus_pending_call_unref(data->disconnect_call);
+	}
 
 	g_free(data->service_ident);
 	g_free(data->path);
