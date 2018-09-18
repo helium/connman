@@ -536,6 +536,11 @@ static int connect_provider(struct connection_data *data, void *user_data,
 	DBG("data %p user %p path %s sender %s", data, cb_data, data->path,
 								dbus_sender);
 
+	if (!transport) {
+		DBG("no default service, refusing to connect");
+		return -EINVAL;
+	}
+
 	data->connect_pending = false;
 
 #define VPN_CONNECT2 "Connect2"
@@ -573,20 +578,14 @@ static int connect_provider(struct connection_data *data, void *user_data,
 		cb_data->path = g_strdup(data->path);
 	}
 
-	if (transport) {
-		/*
-		 * This is the service which (most likely) will be used
-		 * as a transport for VPN connection.
-		 */
-		g_free(data->service_ident);
-		data->service_ident =
-			g_strdup(connman_service_get_identifier(transport));
-		DBG("transport %s", data->service_ident);
-	} else {
-		DBG("no transport????");
-		g_free(data->service_ident);
-		data->service_ident = NULL;
-	}
+	/*
+	 * This is the service which (most likely) will be used
+	 * as a transport for VPN connection.
+	 */
+	g_free(data->service_ident);
+	data->service_ident =
+		g_strdup(connman_service_get_identifier(transport));
+	DBG("transport %s", data->service_ident);
 
 	dbus_pending_call_set_notify(call, connect_reply, data, NULL);
 
