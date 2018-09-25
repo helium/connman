@@ -308,19 +308,22 @@ static DBusMessage *vpn_notify(struct connman_task *task,
 						     vpn_newlink, provider);
 		err = connman_inet_ifup(index);
 		if (err < 0) {
-			if (err == -EALREADY)
+			if (err == -EALREADY) {
 				/*
 				 * So the interface is up already, that is just
 				 * great. Unfortunately in this case the
 				 * newlink watch might not have been called at
 				 * all. We must manually call it here so that
 				 * the provider can go to ready state and the
-				 * routes are setup properly.
+				 * routes are setup properly. Also reset flags
+				 * so vpn_newlink() can handle the change.
 				 */
+				data->flags = 0;
 				vpn_newlink(IFF_UP, 0, provider);
-			else
+			} else {
 				DBG("Cannot take interface %d up err %d/%s",
 					index, -err, strerror(-err));
+			}
 		}
 		break;
 
