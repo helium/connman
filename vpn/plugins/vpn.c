@@ -562,10 +562,15 @@ static int vpn_disconnect(struct vpn_provider *provider)
 static int vpn_remove(struct vpn_provider *provider)
 {
 	struct vpn_data *data;
+	struct vpn_driver_data *driver_data;
+	const char *name;
+	int err = 0;
 
 	data = vpn_provider_get_data(provider);
+	name = vpn_provider_get_driver_name(provider);
+
 	if (!data)
-		return 0;
+		goto call_remove;
 
 	if (data->watch != 0) {
 		vpn_provider_unref(provider);
@@ -577,7 +582,20 @@ static int vpn_remove(struct vpn_provider *provider)
 
 	g_usleep(G_USEC_PER_SEC);
 	stop_vpn(provider);
-	return 0;
+
+call_remove:
+	if (!name)
+		return 0;
+
+	driver_data = g_hash_table_lookup(driver_hash, name);
+
+	if (driver_data && driver_data->vpn_driver->remove)
+		err = driver_data->vpn_driver->remove(provider);
+
+	if (err)
+		DBG("%p vpn_driver->remove() returned %d", provider, err);
+
+	return err;
 }
 
 static int vpn_save(struct vpn_provider *provider, GKeyFile *keyfile)
