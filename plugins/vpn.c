@@ -543,8 +543,6 @@ static int connect_provider(struct connection_data *data, void *user_data,
 
 	data->connect_pending = false;
 
-#define VPN_CONNECT2 "Connect2"
-
 	/* We need to pass original dbus sender to connman-vpnd,
 	 * use a Connect2 method for that if the original dbus sender is set.
 	 * Connect method requires no parameter, Connect2 requires dbus sender

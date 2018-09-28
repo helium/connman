@@ -48,6 +48,7 @@ extern "C" {
 #define PROPERTY_CHANGED		"PropertyChanged"
 #define GET_CONNECTIONS			"GetConnections"
 #define VPN_CONNECT			"Connect"
+#define VPN_CONNECT2			"Connect2"
 #define VPN_DISCONNECT			"Disconnect"
 #define VPN_REMOVE			"Remove"
 
