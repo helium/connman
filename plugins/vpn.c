@@ -546,15 +546,18 @@ static int connect_provider(struct connection_data *data, void *user_data,
 #define VPN_CONNECT2 "Connect2"
 
 	/* We need to pass original dbus sender to connman-vpnd,
-	 * use a Connect2 method for that.
+	 * use a Connect2 method for that if the original dbus sender is set.
+	 * Connect method requires no parameter, Connect2 requires dbus sender
+	 * name to be set.
 	 */
 	message = dbus_message_new_method_call(VPN_SERVICE, data->path,
 					VPN_CONNECTION_INTERFACE,
-					VPN_CONNECT2);
+					dbus_sender && *dbus_sender ?
+						VPN_CONNECT2 : VPN_CONNECT);
 	if (!message)
 		return -ENOMEM;
 
-	if (dbus_sender)
+	if (dbus_sender && *dbus_sender)
 		dbus_message_append_args(message, DBUS_TYPE_STRING,
 					&dbus_sender, NULL);
 	else
@@ -563,7 +566,8 @@ static int connect_provider(struct connection_data *data, void *user_data,
 	if (!dbus_connection_send_with_reply(connection, message,
 						&call, DBUS_TIMEOUT)) {
 		connman_error("Unable to call %s.%s()",
-			VPN_CONNECTION_INTERFACE, VPN_CONNECT2);
+			VPN_CONNECTION_INTERFACE, dbus_sender && *dbus_sender ?
+						VPN_CONNECT2 : VPN_CONNECT);
 		dbus_message_unref(message);
 		return -EINVAL;
 	}
