@@ -39,6 +39,19 @@ Methods		dict GetProperties()  [experimental]
 			Possible Errors: [connection].Error.InvalidArguments
 					[connection].Error.InProgress
 
+		void Connect2(string dbus_sender) [experimental]
+
+			Connect this VPN connection. The Connect2() is a
+			wrapper for Connect() allowing to pass original D-Bus
+			sender when proxying the connection request. The
+			Connect2() will wait until the connection is created or
+			there is an error. The error description is returned in
+			dbus error.
+
+			Possible Errors: [connection].Error.InvalidArguments
+					[connection].Error.InProgress
+
+
 		void Disconnect() [experimental]
 
 			Disconnect this VPN connection. If the connection is
