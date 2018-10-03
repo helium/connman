@@ -33,7 +33,6 @@
 #include <arpa/inet.h>
 #include <net/route.h>
 #include <net/ethernet.h>
-#include <linux/if_arp.h>
 
 #include <gdhcp/gdhcp.h>
 
