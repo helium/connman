@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/poll.h>
+#include <poll.h>
 #include <sys/ioctl.h>
 
 #include <netinet/in.h>
