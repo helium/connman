@@ -22,7 +22,6 @@
 #include <config.h>
 #endif
 
-#define _GNU_SOURCE
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>

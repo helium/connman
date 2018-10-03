@@ -20,6 +20,7 @@ AC_SUBST(abs_top_srcdir)
 AC_SUBST(abs_top_builddir)
 
 AC_LANG_C
+AC_USE_SYSTEM_EXTENSIONS
 
 AC_PROG_CC
 AM_PROG_CC_C_O
