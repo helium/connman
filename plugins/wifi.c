@@ -30,9 +30,8 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <linux/if_arp.h>
-#include <linux/wireless.h>
 #include <net/ethernet.h>
+#include <linux/wireless.h>
 
 #ifndef IFF_LOWER_UP
 #define IFF_LOWER_UP	0x10000
