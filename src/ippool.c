@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/errno.h>
 #include <sys/socket.h>
 
 #include "connman.h"
