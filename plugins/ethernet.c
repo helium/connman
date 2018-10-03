@@ -27,6 +27,7 @@
 #include <net/if.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
 
