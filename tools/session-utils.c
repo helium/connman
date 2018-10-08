@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 
 #include <gdbus.h>
 
