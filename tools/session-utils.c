@@ -26,7 +26,6 @@
 #include <stdlib.h>
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wcast-function-type"
 
 #include <gdbus.h>
 
@@ -193,7 +192,7 @@ struct test_data_cb {
 	util_test_func_t teardown;
 };
 
-static void run_test_cb(gconstpointer data)
+static void run_test_cb(gpointer fixture, gconstpointer data)
 {
 	const struct test_data_cb *cbd = data;
 	struct test_fix *fix;
@@ -222,6 +221,13 @@ static void run_test_cb(gconstpointer data)
 	cleanup_fix(fix);
 }
 
+static void cleanup_test_cb(gpointer fixture, gconstpointer data)
+{
+	struct test_data_cb *cbd = (void *)data;
+
+	g_free(cbd);
+}
+
 void util_test_add(const char *test_name, util_test_func_t test_func,
 		util_test_func_t setup, util_test_func_t teardown)
 {
@@ -231,9 +237,7 @@ void util_test_add(const char *test_name, util_test_func_t test_func,
 	cbd->setup = setup;
 	cbd->teardown = teardown;
 
-	g_test_add_vtable(test_name, 0, cbd, NULL,
-			(GTestFixtureFunc) run_test_cb,
-			(GTestFixtureFunc) g_free);
+	g_test_add_vtable(test_name, 0, cbd, NULL, run_test_cb, cleanup_test_cb);
 }
 
 void util_session_create(struct test_fix *fix, unsigned int max_sessions)
