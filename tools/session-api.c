@@ -158,35 +158,55 @@ static DBusMessage *notify_update(DBusConnection *conn,
 				const char *val;
 				dbus_message_iter_get_basic(&value, &val);
 
-				if (info->bearer)
-					g_free(info->bearer);
-
+				g_free(info->bearer);
 				info->bearer = g_strdup(val);
 
 			} else if (g_str_equal(key, "Name")) {
 				const char *val;
 				dbus_message_iter_get_basic(&value, &val);
 
-				if (info->name)
-					g_free(info->name);
-
+				g_free(info->name);
 				info->name = g_strdup(val);
 
 			} else if (g_str_equal(key, "Interface")) {
 				const char *val;
 				dbus_message_iter_get_basic(&value, &val);
 
-				if (info->interface)
-					g_free(info->interface);
-
+				g_free(info->interface);
 				info->interface = g_strdup(val);
 
-			} else if (g_str_equal(key, "ConnectionType")
-								) {
+			} else if (g_str_equal(key, "ConnectionType")) {
 				const char *val;
 				dbus_message_iter_get_basic(&value, &val);
 
 				info->type = string2type(val);
+
+			} else if (g_str_equal(key, "Allowedinterface")) {
+				const char *val;
+				dbus_message_iter_get_basic(&value, &val);
+
+				g_free(info->allowed_interface);
+				info->allowed_interface = g_strdup(val);
+
+			} else if (g_str_equal(key, "ContextIdentifier")) {
+				const char *val;
+				dbus_message_iter_get_basic(&value, &val);
+
+				g_free(info->context_identifier);
+				info->context_identifier = g_strdup(val);
+
+			} else {
+				g_assert(FALSE);
+				return __connman_error_invalid_arguments(msg);
+			}
+			break;
+		case DBUS_TYPE_BOOLEAN:
+			if (g_str_equal(key, "SourceIPRule")) {
+				dbus_bool_t val;
+				dbus_message_iter_get_basic(&value, &val);
+
+				info->source_ip_rule = val;
+
 			} else {
 				g_assert(FALSE);
 				return __connman_error_invalid_arguments(msg);

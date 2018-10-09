@@ -76,6 +76,9 @@ struct test_session_info {
 	enum connman_session_type type;
 	/* ipv4, ipv6 dicts */
 	GSList *allowed_bearers;
+	char *allowed_interface;
+	bool source_ip_rule;
+	char *context_identifier;
 };
 
 struct test_session {

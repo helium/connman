@@ -309,6 +309,8 @@ void util_session_cleanup(struct test_session *session)
 	g_slist_foreach(session->info->allowed_bearers,
 			bearer_info_cleanup, NULL);
 	g_slist_free(session->info->allowed_bearers);
+	g_free(session->info->allowed_interface);
+	g_free(session->info->context_identifier);
 
 	session->notify = NULL;
 	g_free(session->notify_path);
