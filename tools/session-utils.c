@@ -211,7 +211,7 @@ static void run_test_cb(gpointer fixture, gconstpointer data)
 
 	g_test_trap_assert_passed();
 #else
-	util_call(fix, func, NULL);
+	util_call(fix, cbd->func, NULL);
 	g_main_loop_run(fix->main_loop);
 #endif
 
