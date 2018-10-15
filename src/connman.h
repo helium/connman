@@ -826,6 +826,7 @@ void __connman_peer_cleanup(void);
 
 void __connman_peer_list_struct(DBusMessageIter *array);
 const char *__connman_peer_get_path(struct connman_peer *peer);
+void __connman_peer_disconnect_all(void);
 
 int __connman_peer_service_init(void);
 void __connman_peer_service_cleanup(void);

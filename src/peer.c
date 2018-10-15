@@ -1180,6 +1180,18 @@ const char *__connman_peer_get_path(struct connman_peer *peer)
 	return peer->path;
 }
 
+static void disconnect_peer_hash_table(gpointer key,
+					gpointer value, gpointer user_data)
+{
+	struct connman_peer *peer = value;
+	peer_disconnect(peer);
+}
+
+void __connman_peer_disconnect_all(void)
+{
+	g_hash_table_foreach(peers_table, disconnect_peer_hash_table, NULL);
+}
+
 int __connman_peer_init(void)
 {
 	DBG("");
