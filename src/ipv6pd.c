@@ -295,7 +295,7 @@ static void update_ipconfig(struct connman_service *service,
 	}
 }
 
-static struct connman_notifier pd_notifier = {
+static const struct connman_notifier pd_notifier = {
 	.name			= "IPv6 prefix delegation",
 	.default_changed	= update_default_interface,
 	.ipconfig_changed	= update_ipconfig,

@@ -2912,13 +2912,13 @@ static void dnsproxy_default_changed(struct connman_service *service)
 	cache_refresh();
 }
 
-static struct connman_notifier dnsproxy_notifier = {
+static const struct connman_notifier dnsproxy_notifier = {
 	.name			= "dnsproxy",
 	.default_changed	= dnsproxy_default_changed,
 	.offline_mode		= dnsproxy_offline_mode,
 };
 
-static unsigned char opt_edns0_type[2] = { 0x00, 0x29 };
+static const unsigned char opt_edns0_type[2] = { 0x00, 0x29 };
 
 static int parse_request(unsigned char *buf, size_t len,
 					char *name, unsigned int size)

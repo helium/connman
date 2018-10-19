@@ -500,7 +500,7 @@ static void default_changed(struct connman_service *default_service)
 		timeserver_stop();
 }
 
-static struct connman_notifier timeserver_notifier = {
+static const struct connman_notifier timeserver_notifier = {
 	.name			= "timeserver",
 	.default_changed	= default_changed,
 };

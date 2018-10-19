@@ -1947,7 +1947,7 @@ static void vpn_service_state_changed(struct connman_service *service,
 	vpn_disconnect_check();
 }
 
-static struct connman_notifier vpn_notifier = {
+static const struct connman_notifier vpn_notifier = {
 	.name                   = "vpn",
 	.priority               = CONNMAN_NOTIFIER_PRIORITY_DEFAULT,
 	.default_changed        = vpn_service_list_changed,

@@ -277,7 +277,7 @@ static void proxy_changed(struct connman_service *service)
 	create_proxy_configuration();
 }
 
-static struct connman_notifier pacrunner_notifier = {
+static const struct connman_notifier pacrunner_notifier = {
 	.name			= "pacrunner",
 	.default_changed	= default_service_changed,
 	.proxy_changed		= proxy_changed,

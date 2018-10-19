@@ -86,7 +86,7 @@ static void iospm_offline_mode(bool enabled)
 	send_indication(IOSPM_FLIGHT_MODE, enabled);
 }
 
-static struct connman_notifier iospm_notifier = {
+static const struct connman_notifier iospm_notifier = {
 	.name		= "iospm",
 	.priority	= CONNMAN_NOTIFIER_PRIORITY_DEFAULT,
 	.service_enabled= iospm_service_enabled,

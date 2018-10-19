@@ -169,7 +169,7 @@ static void idle_state(bool idle)
 		return;
 }
 
-static struct connman_notifier technology_notifier = {
+static const struct connman_notifier technology_notifier = {
 	.name		= "manager",
 	.priority	= CONNMAN_NOTIFIER_PRIORITY_HIGH,
 	.idle_state	= idle_state,

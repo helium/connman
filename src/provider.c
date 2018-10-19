@@ -747,7 +747,7 @@ static void provider_service_changed(struct connman_service *service,
 	connman_provider_disconnect(provider);
 }
 
-static struct connman_notifier provider_notifier = {
+static const struct connman_notifier provider_notifier = {
 	.name			= "provider",
 	.offline_mode		= provider_offline_mode,
 	.service_state_changed	= provider_service_changed,

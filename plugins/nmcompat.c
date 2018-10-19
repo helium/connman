@@ -173,7 +173,7 @@ static void offline_mode(bool enabled)
 	current_service = NULL;
 }
 
-static struct connman_notifier notifier = {
+static const struct connman_notifier notifier = {
 	.name			= "nmcompat",
 	.priority		= CONNMAN_NOTIFIER_PRIORITY_DEFAULT,
 	.default_changed	= default_changed,

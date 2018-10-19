@@ -2001,7 +2001,7 @@ static void ipconfig_changed(struct connman_service *service,
 	}
 }
 
-static struct connman_notifier session_notifier = {
+static const struct connman_notifier session_notifier = {
 	.name			= "session",
 	.service_state_changed	= service_state_changed,
 	.ipconfig_changed	= ipconfig_changed,

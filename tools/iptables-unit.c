@@ -318,7 +318,7 @@ static void test_iptables_target0(void)
 	assert_rule_not_exists("filter", "-A INPUT -m mark --mark 0x2");
 }
 
-struct connman_notifier *nat_notifier;
+const struct connman_notifier *nat_notifier;
 
 struct connman_service {
 	char *dummy;
@@ -329,14 +329,14 @@ char *connman_service_get_interface(struct connman_service *service)
 	return "eth0";
 }
 
-int connman_notifier_register(struct connman_notifier *notifier)
+int connman_notifier_register(const struct connman_notifier *notifier)
 {
 	nat_notifier = notifier;
 
 	return 0;
 }
 
-void connman_notifier_unregister(struct connman_notifier *notifier)
+void connman_notifier_unregister(const struct connman_notifier *notifier)
 {
 	nat_notifier = NULL;
 }
