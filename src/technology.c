@@ -345,6 +345,15 @@ static struct connman_technology *technology_find(enum connman_service_type type
 	return NULL;
 }
 
+enum connman_service_type connman_technology_get_type
+				(struct connman_technology *technology)
+{
+	if (!technology)
+		return CONNMAN_SERVICE_TYPE_UNKNOWN;
+
+	return technology->type;
+}
+
 bool connman_technology_get_wifi_tethering(const char **ssid,
 							const char **psk)
 {
