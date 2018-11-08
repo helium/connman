@@ -92,15 +92,17 @@ static int insert_managed_chain(const char *table_name, int id)
 	managed_chain = g_strdup_printf("%s%s", CHAIN_PREFIX,
 					builtin_chains[id]);
 
-	err = __connman_iptables_new_chain(table_name, managed_chain);
+	err = __connman_iptables_new_chain(AF_INET, table_name, managed_chain);
 	if (err < 0)
 		goto out;
 
 	rule = g_strdup_printf("-j %s", managed_chain);
-	err = __connman_iptables_insert(table_name, builtin_chains[id], rule);
+	err = __connman_iptables_insert(AF_INET, table_name, builtin_chains[id],
+						rule);
 	g_free(rule);
 	if (err < 0) {
-		__connman_iptables_delete_chain(table_name, managed_chain);
+		__connman_iptables_delete_chain(AF_INET, table_name,
+							managed_chain);
 		goto out;
 	}
 
@@ -119,13 +121,15 @@ static int delete_managed_chain(const char *table_name, int id)
 					builtin_chains[id]);
 
 	rule = g_strdup_printf("-j %s", managed_chain);
-	err = __connman_iptables_delete(table_name, builtin_chains[id], rule);
+	err = __connman_iptables_delete(AF_INET, table_name, builtin_chains[id],
+					rule);
 	g_free(rule);
 
 	if (err < 0)
 		goto out;
 
-	err =  __connman_iptables_delete_chain(table_name, managed_chain);
+	err =  __connman_iptables_delete_chain(AF_INET, table_name,
+						managed_chain);
 
 out:
 	g_free(managed_chain);
@@ -178,7 +182,7 @@ static int insert_managed_rule(const char *table_name,
 	chain = g_strdup_printf("%s%s", CHAIN_PREFIX, chain_name);
 
 out:
-	err = __connman_iptables_append(table_name, chain, rule_spec);
+	err = __connman_iptables_append(AF_INET, table_name, chain, rule_spec);
 
 	g_free(chain);
 
@@ -197,14 +201,14 @@ static int delete_managed_rule(const char *table_name,
 	id = chain_to_index(chain_name);
 	if (id < 0) {
 		/* This chain is not managed */
-		return __connman_iptables_delete(table_name, chain_name,
-							rule_spec);
+		return __connman_iptables_delete(AF_INET, table_name,
+							chain_name, rule_spec);
 	}
 
 	managed_chain = g_strdup_printf("%s%s", CHAIN_PREFIX, chain_name);
 
-	err = __connman_iptables_delete(table_name, managed_chain,
-					rule_spec);
+	err = __connman_iptables_delete(AF_INET, table_name, managed_chain,
+						rule_spec);
 
 	for (list = managed_tables; list; list = list->next) {
 		mtable = list->data;
@@ -281,7 +285,7 @@ static int enable_rule(struct fw_rule *rule)
 	if (err < 0)
 		return err;
 
-	err = __connman_iptables_commit(rule->table);
+	err = __connman_iptables_commit(AF_INET, rule->table);
 	if (err < 0)
 		return err;
 
@@ -304,7 +308,7 @@ static int disable_rule(struct fw_rule *rule)
 		return err;
 	}
 
-	err = __connman_iptables_commit(rule->table);
+	err = __connman_iptables_commit(AF_INET, rule->table);
 	if (err < 0) {
 		connman_error("Cannot remove previously installed "
 			"iptables rules: %s", strerror(-err));
@@ -545,8 +549,8 @@ static void flush_table(const char *table_name)
 	char *rule, *managed_chain;
 	int id, err;
 
-	__connman_iptables_iterate_chains(table_name, iterate_chains_cb,
-						&chains);
+	__connman_iptables_iterate_chains(AF_INET, table_name,
+						iterate_chains_cb, &chains);
 
 	for (list = chains; list; list = list->next) {
 		id = GPOINTER_TO_INT(list->data);
@@ -555,7 +559,7 @@ static void flush_table(const char *table_name)
 						builtin_chains[id]);
 
 		rule = g_strdup_printf("-j %s", managed_chain);
-		err = __connman_iptables_delete(table_name,
+		err = __connman_iptables_delete(AF_INET, table_name,
 						builtin_chains[id], rule);
 		if (err < 0) {
 			connman_warn("Failed to delete jump rule '%s': %s",
@@ -563,12 +567,14 @@ static void flush_table(const char *table_name)
 		}
 		g_free(rule);
 
-		err = __connman_iptables_flush_chain(table_name, managed_chain);
+		err = __connman_iptables_flush_chain(AF_INET, table_name,
+							managed_chain);
 		if (err < 0) {
 			connman_warn("Failed to flush chain '%s': %s",
 				managed_chain, strerror(-err));
 		}
-		err = __connman_iptables_delete_chain(table_name, managed_chain);
+		err = __connman_iptables_delete_chain(AF_INET, table_name,
+							managed_chain);
 		if (err < 0) {
 			connman_warn("Failed to delete chain '%s': %s",
 				managed_chain, strerror(-err));
@@ -577,7 +583,7 @@ static void flush_table(const char *table_name)
 		g_free(managed_chain);
 	}
 
-	err = __connman_iptables_commit(table_name);
+	err = __connman_iptables_commit(AF_INET, table_name);
 	if (err < 0) {
 		connman_warn("Failed to flush table '%s': %s",
 			table_name, strerror(-err));
