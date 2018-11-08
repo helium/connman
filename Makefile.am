@@ -380,14 +380,19 @@ tools_session_test_LDADD = gdbus/libgdbus-internal.la \
 				@GLIB_LIBS@ @DBUS_LIBS@ -ldl
 
 if XTABLES
-noinst_PROGRAMS += tools/iptables-test tools/iptables-unit
+noinst_PROGRAMS += tools/iptables-test tools/ip6tables-test tools/iptables-unit
 
 tools_iptables_test_SOURCES = $(backtrace_sources) src/log.c src/iptables.c \
 				tools/iptables-test.c
 tools_iptables_test_LDADD = @GLIB_LIBS@ @XTABLES_LIBS@ -ldl
 
+tools_ip6tables_test_SOURCES = $(backtrace_sources) src/log.c src/iptables.c \
+				tools/ip6tables-test.c
+tools_ip6tables_test_LDADD = @GLIB_LIBS@ @XTABLES_LIBS@ -ldl
+
 tools_iptables_unit_CFLAGS = @DBUS_CFLAGS@ @GLIB_CFLAGS@ @XTABLES_CFLAGS@ \
-		-DIPTABLES_SAVE=\""${IPTABLES_SAVE}"\"
+		-DIPTABLES_SAVE=\""${IPTABLES_SAVE}"\" \
+		-DIP6TABLES_SAVE=\""${IP6TABLES_SAVE}"\"
 tools_iptables_unit_SOURCES = $(backtrace_sources) src/log.c \
 		src/iptables.c src/firewall-iptables.c src/nat.c \
 		tools/iptables-unit.c

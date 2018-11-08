@@ -28,14 +28,24 @@
 
 #include "../src/connman.h"
 
-static bool assert_rule(const char *table_name, const char *rule)
+static bool assert_rule(int type, const char *table_name, const char *rule)
 {
 	char *cmd, *output, **lines;
 	GError **error = NULL;
 	int i;
 	bool ret = true;
 
-	cmd = g_strdup_printf(IPTABLES_SAVE " -t %s", table_name);
+	switch (type) {
+	case AF_INET:
+		cmd = g_strdup_printf(IPTABLES_SAVE " -t %s", table_name);
+		break;
+	case AF_INET6:
+		cmd = g_strdup_printf(IP6TABLES_SAVE " -t %s", table_name);
+		break;
+	default:
+		return false;
+	}
+
 	g_spawn_command_line_sync(cmd, &output, NULL, NULL, error);
 	g_free(cmd);
 
@@ -57,67 +67,87 @@ static bool assert_rule(const char *table_name, const char *rule)
 	return ret;
 }
 
-static void assert_rule_exists(const char *table_name, const char *rule)
+static void assert_rule_exists(int type, const char *table_name,
+							const char *rule)
 {
-	if (g_strcmp0(IPTABLES_SAVE, "") == 0) {
-		DBG("iptables-save is missing, no assertion possible");
-		return;
+	if (type == AF_INET) {
+		if (g_strcmp0(IPTABLES_SAVE, "") == 0) {
+			DBG("iptables-save is missing, no assertion possible");
+			return;
+		}
 	}
 
-	g_assert(assert_rule(table_name, rule));
+	if (type == AF_INET6) {
+		if (g_strcmp0(IP6TABLES_SAVE, "") == 0) {
+			DBG("ip6tables-save is missing, no assertion possible");
+			return;
+		}
+	}
+
+	g_assert(assert_rule(type, table_name, rule));
 }
 
-static void assert_rule_not_exists(const char *table_name, const char *rule)
+static void assert_rule_not_exists(int type, const char *table_name,
+							const char *rule)
 {
-	if (g_strcmp0(IPTABLES_SAVE, "") == 0) {
-		DBG("iptables-save is missing, no assertion possible");
-		return;
+	if (type == AF_INET) {
+		if (g_strcmp0(IPTABLES_SAVE, "") == 0) {
+			DBG("iptables-save is missing, no assertion possible");
+			return;
+		}
 	}
 
-	g_assert(!assert_rule(table_name, rule));
+	if (type == AF_INET6) {
+		if (g_strcmp0(IP6TABLES_SAVE, "") == 0) {
+			DBG("ip6tables-save is missing, no assertion possible");
+			return;
+		}
+	}
+
+	g_assert(!assert_rule(type, table_name, rule));
 }
 
 static void test_iptables_chain0(void)
 {
 	int err;
 
-	err = __connman_iptables_new_chain("filter", "foo");
+	err = __connman_iptables_new_chain(AF_INET, "filter", "foo");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_exists("filter", ":foo - [0:0]");
+	assert_rule_exists(AF_INET, "filter", ":foo - [0:0]");
 
-	err = __connman_iptables_delete_chain("filter", "foo");
+	err = __connman_iptables_delete_chain(AF_INET, "filter", "foo");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_not_exists("filter", ":foo - [0:0]");
+	assert_rule_not_exists(AF_INET, "filter", ":foo - [0:0]");
 }
 
 static void test_iptables_chain1(void)
 {
 	int err;
 
-	err = __connman_iptables_new_chain("filter", "foo");
+	err = __connman_iptables_new_chain(AF_INET, "filter", "foo");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	err = __connman_iptables_flush_chain("filter", "foo");
+	err = __connman_iptables_flush_chain(AF_INET, "filter", "foo");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	err = __connman_iptables_delete_chain("filter", "foo");
+	err = __connman_iptables_delete_chain(AF_INET, "filter", "foo");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 }
 
@@ -125,16 +155,16 @@ static void test_iptables_chain2(void)
 {
 	int err;
 
-	err = __connman_iptables_change_policy("filter", "INPUT", "DROP");
+	err = __connman_iptables_change_policy(AF_INET, "filter", "INPUT", "DROP");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	err = __connman_iptables_change_policy("filter", "INPUT", "ACCEPT");
+	err = __connman_iptables_change_policy(AF_INET, "filter", "INPUT", "ACCEPT");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 }
 
@@ -142,39 +172,39 @@ static void test_iptables_chain3(void)
 {
 	int err;
 
-	err = __connman_iptables_new_chain("filter", "user-chain-0");
+	err = __connman_iptables_new_chain(AF_INET, "filter", "user-chain-0");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_exists("filter", ":user-chain-0 - [0:0]");
+	assert_rule_exists(AF_INET, "filter", ":user-chain-0 - [0:0]");
 
-	err = __connman_iptables_new_chain("filter", "user-chain-1");
+	err = __connman_iptables_new_chain(AF_INET, "filter", "user-chain-1");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_exists("filter", ":user-chain-0 - [0:0]");
-	assert_rule_exists("filter", ":user-chain-1 - [0:0]");
+	assert_rule_exists(AF_INET, "filter", ":user-chain-0 - [0:0]");
+	assert_rule_exists(AF_INET, "filter", ":user-chain-1 - [0:0]");
 
-	err = __connman_iptables_delete_chain("filter", "user-chain-1");
+	err = __connman_iptables_delete_chain(AF_INET, "filter", "user-chain-1");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_exists("filter", ":user-chain-0 - [0:0]");
-	assert_rule_not_exists("filter", ":user-chain-1 - [0:0]");
+	assert_rule_exists(AF_INET, "filter", ":user-chain-0 - [0:0]");
+	assert_rule_not_exists(AF_INET, "filter", ":user-chain-1 - [0:0]");
 
-	err = __connman_iptables_delete_chain("filter", "user-chain-0");
+	err = __connman_iptables_delete_chain(AF_INET, "filter", "user-chain-0");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_not_exists("filter", ":user-chain-0 - [0:0]");
+	assert_rule_not_exists(AF_INET, "filter", ":user-chain-0 - [0:0]");
 }
 
 static void test_iptables_rule0(void)
@@ -183,24 +213,24 @@ static void test_iptables_rule0(void)
 
 	/* Test simple appending and removing a rule */
 
-	err = __connman_iptables_append("filter", "INPUT",
+	err = __connman_iptables_append(AF_INET, "filter", "INPUT",
 					"-m mark --mark 1 -j LOG");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_exists("filter",
+	assert_rule_exists(AF_INET, "filter",
 				"-A INPUT -m mark --mark 0x1 -j LOG");
 
-	err = __connman_iptables_delete("filter", "INPUT",
+	err = __connman_iptables_delete(AF_INET, "filter", "INPUT",
 					"-m mark --mark 1 -j LOG");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_not_exists("filter",
+	assert_rule_not_exists(AF_INET, "filter",
 				"-A INPUT -m mark --mark 0x1 -j LOG");
 }
 
@@ -210,22 +240,22 @@ static void test_iptables_rule1(void)
 
 	/* Test if we can do NAT stuff */
 
-	err = __connman_iptables_append("nat", "POSTROUTING",
+	err = __connman_iptables_append(AF_INET, "nat", "POSTROUTING",
 				"-s 10.10.1.0/24 -o eth0 -j MASQUERADE");
 
-	err = __connman_iptables_commit("nat");
+	err = __connman_iptables_commit(AF_INET, "nat");
 	g_assert(err == 0);
 
-	assert_rule_exists("nat",
+	assert_rule_exists(AF_INET, "nat",
 		"-A POSTROUTING -s 10.10.1.0/24 -o eth0 -j MASQUERADE");
 
-	err = __connman_iptables_delete("nat", "POSTROUTING",
+	err = __connman_iptables_delete(AF_INET, "nat", "POSTROUTING",
 				"-s 10.10.1.0/24 -o eth0 -j MASQUERADE");
 
-	err = __connman_iptables_commit("nat");
+	err = __connman_iptables_commit(AF_INET, "nat");
 	g_assert(err == 0);
 
-	assert_rule_not_exists("nat",
+	assert_rule_not_exists(AF_INET, "nat",
 		"-A POSTROUTING -s 10.10.1.0/24 -o eth0 -j MASQUERADE");
 }
 
@@ -235,48 +265,48 @@ static void test_iptables_rule2(void)
 
 	/* Test if the right rule is removed */
 
-	err = __connman_iptables_append("filter", "INPUT",
+	err = __connman_iptables_append(AF_INET, "filter", "INPUT",
 					"-m mark --mark 1 -j LOG");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_exists("filter",
+	assert_rule_exists(AF_INET, "filter",
 				"-A INPUT -m mark --mark 0x1 -j LOG");
 
-	err = __connman_iptables_append("filter", "INPUT",
+	err = __connman_iptables_append(AF_INET, "filter", "INPUT",
 					"-m mark --mark 2 -j LOG");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_exists("filter",
+	assert_rule_exists(AF_INET, "filter",
 				"-A INPUT -m mark --mark 0x1 -j LOG");
-	assert_rule_exists("filter",
+	assert_rule_exists(AF_INET, "filter",
 				"-A INPUT -m mark --mark 0x2 -j LOG");
 
-	err = __connman_iptables_delete("filter", "INPUT",
+	err = __connman_iptables_delete(AF_INET, "filter", "INPUT",
 					"-m mark --mark 2 -j LOG");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_exists("filter",
+	assert_rule_exists(AF_INET, "filter",
 				"-A INPUT -m mark --mark 0x1 -j LOG");
-	assert_rule_not_exists("filter",
+	assert_rule_not_exists(AF_INET, "filter",
 				"-A INPUT -m mark --mark 0x2 -j LOG");
 
-	err = __connman_iptables_delete("filter", "INPUT",
+	err = __connman_iptables_delete(AF_INET, "filter", "INPUT",
 					"-m mark --mark 1 -j LOG");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_not_exists("filter",
+	assert_rule_not_exists(AF_INET, "filter",
 				"-A INPUT -m mark --mark 0x1 -j LOG");
 }
 
@@ -286,36 +316,306 @@ static void test_iptables_target0(void)
 
 	/* Test if 'fallthrough' targets work */
 
-	err = __connman_iptables_append("filter", "INPUT",
+	err = __connman_iptables_append(AF_INET, "filter", "INPUT",
 					"-m mark --mark 1");
 	g_assert(err == 0);
 
-	err = __connman_iptables_append("filter", "INPUT",
+	err = __connman_iptables_append(AF_INET, "filter", "INPUT",
 					"-m mark --mark 2");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_exists("filter", "-A INPUT -m mark --mark 0x1");
-	assert_rule_exists("filter", "-A INPUT -m mark --mark 0x2");
+	assert_rule_exists(AF_INET, "filter", "-A INPUT -m mark --mark 0x1");
+	assert_rule_exists(AF_INET, "filter", "-A INPUT -m mark --mark 0x2");
 
-	err = __connman_iptables_delete("filter", "INPUT",
+	err = __connman_iptables_delete(AF_INET, "filter", "INPUT",
 					"-m mark --mark 1");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	err = __connman_iptables_delete("filter", "INPUT",
+	err = __connman_iptables_delete(AF_INET, "filter", "INPUT",
 					"-m mark --mark 2");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("filter");
+	err = __connman_iptables_commit(AF_INET, "filter");
 	g_assert(err == 0);
 
-	assert_rule_not_exists("filter", "-A INPUT -m mark --mark 0x1");
-	assert_rule_not_exists("filter", "-A INPUT -m mark --mark 0x2");
+	assert_rule_not_exists(AF_INET, "filter",
+					"-A INPUT -m mark --mark 0x1");
+	assert_rule_not_exists(AF_INET, "filter",
+					"-A INPUT -m mark --mark 0x2");
+}
+
+static void test_ip6tables_chain0(void)
+{
+	int err;
+
+	err = __connman_iptables_new_chain(AF_INET6, "filter", "foo");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter", ":foo - [0:0]");
+
+	err = __connman_iptables_delete_chain(AF_INET6, "filter", "foo");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_not_exists(AF_INET6, "filter", ":foo - [0:0]");
+}
+
+static void test_ip6tables_chain1(void)
+{
+	int err;
+
+	err = __connman_iptables_new_chain(AF_INET6, "filter", "foo");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	err = __connman_iptables_flush_chain(AF_INET6, "filter", "foo");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	err = __connman_iptables_delete_chain(AF_INET6, "filter", "foo");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+}
+
+static void test_ip6tables_chain2(void)
+{
+	int err;
+
+	err = __connman_iptables_change_policy(AF_INET6, "filter", "INPUT",
+							"DROP");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	err = __connman_iptables_change_policy(AF_INET6, "filter", "INPUT",
+								"ACCEPT");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+}
+
+static void test_ip6tables_chain3(void)
+{
+	int err;
+
+	err = __connman_iptables_new_chain(AF_INET6, "filter", "user-chain-0");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter", ":user-chain-0 - [0:0]");
+
+	err = __connman_iptables_new_chain(AF_INET6, "filter", "user-chain-1");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter", ":user-chain-0 - [0:0]");
+	assert_rule_exists(AF_INET6, "filter", ":user-chain-1 - [0:0]");
+
+	err = __connman_iptables_delete_chain(AF_INET6, "filter",
+						"user-chain-1");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter", ":user-chain-0 - [0:0]");
+	assert_rule_not_exists(AF_INET6, "filter", ":user-chain-1 - [0:0]");
+
+	err = __connman_iptables_delete_chain(AF_INET6, "filter",
+						"user-chain-0");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_not_exists(AF_INET6, "filter", ":user-chain-0 - [0:0]");
+}
+
+static void test_ip6tables_rule0(void)
+{
+	int err;
+
+	/* Test simple appending and removing a rule */
+
+	err = __connman_iptables_append(AF_INET6, "filter", "INPUT",
+					"-m mark --mark 1 -j LOG");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter",
+				"-A INPUT -m mark --mark 0x1 -j LOG");
+
+	err = __connman_iptables_delete(AF_INET6, "filter", "INPUT",
+					"-m mark --mark 1 -j LOG");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_not_exists(AF_INET6, "filter",
+				"-A INPUT -m mark --mark 0x1 -j LOG");
+}
+
+static void test_ip6tables_rule1(void)
+{
+	int err;
+
+	/* Test if the right rule is removed */
+
+	err = __connman_iptables_append(AF_INET6, "filter", "INPUT",
+					"-m mark --mark 1 -j LOG");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter",
+				"-A INPUT -m mark --mark 0x1 -j LOG");
+
+	err = __connman_iptables_append(AF_INET6, "filter", "INPUT",
+					"-m mark --mark 2 -j LOG");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter",
+				"-A INPUT -m mark --mark 0x1 -j LOG");
+	assert_rule_exists(AF_INET6, "filter",
+				"-A INPUT -m mark --mark 0x2 -j LOG");
+
+	err = __connman_iptables_delete(AF_INET6, "filter", "INPUT",
+					"-m mark --mark 2 -j LOG");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter",
+				"-A INPUT -m mark --mark 0x1 -j LOG");
+	assert_rule_not_exists(AF_INET6, "filter",
+				"-A INPUT -m mark --mark 0x2 -j LOG");
+
+	err = __connman_iptables_delete(AF_INET6, "filter", "INPUT",
+					"-m mark --mark 1 -j LOG");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_not_exists(AF_INET6, "filter",
+				"-A INPUT -m mark --mark 0x1 -j LOG");
+}
+
+static void test_ip6tables_rule2(void)
+{
+	int err;
+
+	err = __connman_iptables_append(AF_INET6, "filter", "INPUT",
+					"-p icmpv6 -m icmpv6 "
+					"--icmpv6-type 128/0 -j DROP");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter", "-A INPUT -p ipv6-icmp "
+					"-m icmp6 --icmpv6-type 128/0 -j DROP");
+
+	err = __connman_iptables_append(AF_INET6, "filter", "OUTPUT",
+					"-p icmpv6 -m icmpv6 "
+					"--icmpv6-type 129/0 -j DROP");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter", "-A OUTPUT -p ipv6-icmp "
+					"-m icmp6 --icmpv6-type 129/0 -j DROP");
+
+	err = __connman_iptables_delete(AF_INET6, "filter", "INPUT",
+					"-p icmpv6 -m icmpv6 "
+					"--icmpv6-type 128/0 -j DROP");
+
+	g_assert(err == 0);
+
+	err = __connman_iptables_delete(AF_INET6, "filter", "OUTPUT",
+					"-p icmpv6 -m icmpv6 "
+					"--icmpv6-type 129/0 -j DROP");
+
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+
+	g_assert(err == 0);
+
+}
+
+static void test_ip6tables_target0(void)
+{
+	int err;
+
+	/* Test if 'fallthrough' targets work */
+
+	err = __connman_iptables_append(AF_INET6, "filter", "INPUT",
+					"-m mark --mark 1");
+	g_assert(err == 0);
+
+	err = __connman_iptables_append(AF_INET6, "filter", "INPUT",
+					"-m mark --mark 2");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_exists(AF_INET6, "filter", "-A INPUT -m mark --mark 0x1");
+	assert_rule_exists(AF_INET6, "filter", "-A INPUT -m mark --mark 0x2");
+
+	err = __connman_iptables_delete(AF_INET6, "filter", "INPUT",
+					"-m mark --mark 1");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	err = __connman_iptables_delete(AF_INET6, "filter", "INPUT",
+					"-m mark --mark 2");
+	g_assert(err == 0);
+
+	err = __connman_iptables_commit(AF_INET6, "filter");
+	g_assert(err == 0);
+
+	assert_rule_not_exists(AF_INET6, "filter", "-A INPUT "
+					"-m mark --mark 0x1");
+	assert_rule_not_exists(AF_INET6, "filter", "-A INPUT "
+					"-m mark --mark 0x2");
 }
 
 const struct connman_notifier *nat_notifier;
@@ -349,24 +649,24 @@ static void test_nat_basic0(void)
 	g_assert(err == 0);
 
 	/* test that table is empty */
-	err = __connman_iptables_append("nat", "POSTROUTING",
+	err = __connman_iptables_append(AF_INET, "nat", "POSTROUTING",
 					"-s 192.168.2.1/24 -o eth0 -j MASQUERADE");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("nat");
+	err = __connman_iptables_commit(AF_INET, "nat");
 	g_assert(err == 0);
 
-	assert_rule_exists("nat",
+	assert_rule_exists(AF_INET, "nat",
 		"-A POSTROUTING -s 192.168.2.0/24 -o eth0 -j MASQUERADE");
 
-	err = __connman_iptables_delete("nat", "POSTROUTING",
+	err = __connman_iptables_delete(AF_INET, "nat", "POSTROUTING",
 					"-s 192.168.2.1/24 -o eth0 -j MASQUERADE");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("nat");
+	err = __connman_iptables_commit(AF_INET, "nat");
 	g_assert(err == 0);
 
-	assert_rule_not_exists("nat",
+	assert_rule_not_exists(AF_INET, "nat",
 		"-A POSTROUTING -s 192.168.2.0/24 -o eth0 -j MASQUERADE");
 
 	__connman_nat_disable("bridge");
@@ -386,21 +686,21 @@ static void test_nat_basic1(void)
 	g_assert(err == 0);
 
 	/* test that table is not empty */
-	err = __connman_iptables_append("nat", "POSTROUTING",
+	err = __connman_iptables_append(AF_INET, "nat", "POSTROUTING",
 					"-s 192.168.2.1/24 -o eth0 -j MASQUERADE");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("nat");
+	err = __connman_iptables_commit(AF_INET, "nat");
 	g_assert(err == 0);
 
 	__connman_nat_disable("bridge");
 
 	/* test that table is empty again */
-	err = __connman_iptables_delete("nat", "POSTROUTING",
+	err = __connman_iptables_delete(AF_INET, "nat", "POSTROUTING",
 					"-s 192.168.2.1/24 -o eth0 -j MASQUERADE");
 	g_assert(err == 0);
 
-	err = __connman_iptables_commit("nat");
+	err = __connman_iptables_commit(AF_INET, "nat");
 	g_assert(err == 0);
 
 	g_free(service);
@@ -462,6 +762,14 @@ int main(int argc, char *argv[])
 	g_test_add_func("/iptables/rule1",  test_iptables_rule1);
 	g_test_add_func("/iptables/rule2",  test_iptables_rule2);
 	g_test_add_func("/iptables/target0", test_iptables_target0);
+	g_test_add_func("/ip6tables/chain0", test_ip6tables_chain0);
+	g_test_add_func("/ip6tables/chain1", test_ip6tables_chain1);
+	g_test_add_func("/ip6tables/chain2", test_ip6tables_chain2);
+	g_test_add_func("/ip6tables/chain3", test_ip6tables_chain3);
+	g_test_add_func("/ip6tables/rule0",  test_ip6tables_rule0);
+	g_test_add_func("/ip6tables/rule1",  test_ip6tables_rule1);
+	g_test_add_func("/ip6tables/rule2",  test_ip6tables_rule2);
+	g_test_add_func("/ip6tables/target0", test_ip6tables_target0);
 	g_test_add_func("/nat/basic0", test_nat_basic0);
 	g_test_add_func("/nat/basic1", test_nat_basic1);
 

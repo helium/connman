@@ -3,6 +3,7 @@
  *
  *  Copyright (C) 2007-2012  Intel Corporation. All rights reserved.
  *  Copyright (C) 2013  BMW Car IT GmbH.
+ *  Copyright (C) 2018  Jolla Ltd. All rights reserved.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License version 2 as
@@ -108,38 +109,38 @@ out:
 
 	switch (cmd) {
 	case IPTABLES_COMMAND_APPEND:
-		err = __connman_iptables_append(AF_INET, table, chain, rule);
+		err = __connman_iptables_append(AF_INET6, table, chain, rule);
 		break;
 	case IPTABLES_COMMAND_INSERT:
-		err = __connman_iptables_insert(AF_INET, table, chain, rule);
+		err = __connman_iptables_insert(AF_INET6, table, chain, rule);
 		break;
 	case IPTABLES_COMMAND_DELETE:
-		err = __connman_iptables_delete(AF_INET, table, chain, rule);
+		err = __connman_iptables_delete(AF_INET6, table, chain, rule);
 		break;
 	case IPTABLES_COMMAND_POLICY:
-		err = __connman_iptables_change_policy(AF_INET, table, chain,
+		err = __connman_iptables_change_policy(AF_INET6, table, chain,
 						rule);
 		break;
 	case IPTABLES_COMMAND_CHAIN_INSERT:
-		err = __connman_iptables_new_chain(AF_INET, table, chain);
+		err = __connman_iptables_new_chain(AF_INET6, table, chain);
 		break;
 	case IPTABLES_COMMAND_CHAIN_DELETE:
-		err = __connman_iptables_delete_chain(AF_INET, table, chain);
+		err = __connman_iptables_delete_chain(AF_INET6, table, chain);
 		break;
 	case IPTABLES_COMMAND_CHAIN_FLUSH:
-		err = __connman_iptables_flush_chain(AF_INET, table, chain);
+		err = __connman_iptables_flush_chain(AF_INET6, table, chain);
 		break;
 	case IPTABLES_COMMAND_DUMP:
 		__connman_log_init(argv[0], "*", false, false,
-			"iptables-test", "1");
-		err = __connman_iptables_dump(AF_INET, table);
+			"ip6tables-test", "1");
+		err = __connman_iptables_dump(AF_INET6, table);
 		break;
 	case IPTABLES_COMMAND_UNKNOWN:
 		printf("Missing command\n");
-		printf("usage: iptables-test [-t table] {-A|-I|-D} chain rule\n");
-		printf("       iptables-test [-t table] {-N|-X|-F} chain\n");
-		printf("       iptables-test [-t table] -L\n");
-		printf("       iptables-test [-t table] -P chain target\n");
+		printf("usage: ip6tables-test [-t table] {-A|-I|-D} chain rule\n");
+		printf("       ip6tables-test [-t table] {-N|-X|-F} chain\n");
+		printf("       ip6tables-test [-t table] -L\n");
+		printf("       ip6tables-test [-t table] -P chain target\n");
 		exit(-EINVAL);
 	}
 
@@ -148,7 +149,7 @@ out:
 		exit(err);
 	}
 
-	err = __connman_iptables_commit(AF_INET, table);
+	err = __connman_iptables_commit(AF_INET6, table);
 	if (err < 0) {
 		printf("Failed to commit changes: %s\n", strerror(-err));
 		exit(err);
