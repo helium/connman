@@ -143,10 +143,6 @@ static const char *hooknames[] = {
 
 #define XT_OPTION_OFFSET_SCALE 256
 
-#define MIN_ALIGN (__alignof__(struct ipt_entry))
-
-#define ALIGN(s) (((s) + ((MIN_ALIGN)-1)) & ~((MIN_ALIGN)-1))
-
 struct connman_iptables_entry {
 	int offset;
 	int builtin;
@@ -450,9 +446,9 @@ static void update_targets_reference(struct connman_iptables *table,
 
 		t->verdict = entry_before->offset +
 			modified_entry->entry->target_offset +
-			ALIGN(sizeof(struct xt_standard_target));
+			XT_ALIGN(sizeof(struct xt_standard_target));
 		t->target.u.target_size =
-			ALIGN(sizeof(struct xt_standard_target));
+			XT_ALIGN(sizeof(struct xt_standard_target));
 	}
 }
 
@@ -609,37 +605,37 @@ static int iptables_add_chain(struct connman_iptables *table,
 	 */
 
 	/* head entry */
-	entry_head_size = ALIGN(sizeof(struct ipt_entry)) +
-			ALIGN(sizeof(struct xt_error_target));
+	entry_head_size = XT_ALIGN(sizeof(struct ipt_entry)) +
+			XT_ALIGN(sizeof(struct xt_error_target));
 	entry_head = g_try_malloc0(entry_head_size);
 	if (!entry_head)
 		goto err_head;
 
-	entry_head->target_offset = ALIGN(sizeof(struct ipt_entry));
+	entry_head->target_offset = XT_ALIGN(sizeof(struct ipt_entry));
 	entry_head->next_offset = entry_head_size;
 
 	error = (struct xt_error_target *) entry_head->elems;
 	g_stpcpy(error->target.u.user.name, IPT_ERROR_TARGET);
 	error->target.u.user.target_size =
-					ALIGN(sizeof(struct xt_error_target));
+					XT_ALIGN(sizeof(struct xt_error_target));
 	g_stpcpy(error->errorname, name);
 
 	if (iptables_add_entry(table, entry_head, last, -1, -1) < 0)
 		goto err_head;
 
 	/* tail entry */
-	entry_return_size = ALIGN(sizeof(struct ipt_entry))+
-			ALIGN(sizeof(struct ipt_standard_target));
+	entry_return_size = XT_ALIGN(sizeof(struct ipt_entry))+
+			XT_ALIGN(sizeof(struct ipt_standard_target));
 	entry_return = g_try_malloc0(entry_return_size);
 	if (!entry_return)
 		goto err;
 
-	entry_return->target_offset = ALIGN(sizeof(struct ipt_entry));
+	entry_return->target_offset = XT_ALIGN(sizeof(struct ipt_entry));
 	entry_return->next_offset = entry_return_size;
 
 	standard = (struct ipt_standard_target *) entry_return->elems;
 	standard->target.u.user.target_size =
-				ALIGN(sizeof(struct ipt_standard_target));
+				XT_ALIGN(sizeof(struct ipt_standard_target));
 	standard->verdict = XT_RETURN;
 
 	if (iptables_add_entry(table, entry_return, last, -1, -1) < 0)
@@ -706,18 +702,18 @@ static struct ipt_entry *new_rule(struct ipt_ip *ip,
 	if (xt_t)
 		target_size = xt_t->t->u.target_size;
 	else
-		target_size = ALIGN(sizeof(struct xt_standard_target));
+		target_size = XT_ALIGN(sizeof(struct xt_standard_target));
 
-	new_entry = g_try_malloc0(ALIGN(sizeof(struct ipt_entry)) +
+	new_entry = g_try_malloc0(XT_ALIGN(sizeof(struct ipt_entry)) +
 				target_size + match_size);
 	if (!new_entry)
 		return NULL;
 
 	memcpy(&new_entry->ip, ip, sizeof(struct ipt_ip));
 
-	new_entry->target_offset = ALIGN(sizeof(struct ipt_entry)) +
+	new_entry->target_offset = XT_ALIGN(sizeof(struct ipt_entry)) +
 							match_size;
-	new_entry->next_offset = ALIGN(sizeof(struct ipt_entry)) +
+	new_entry->next_offset = XT_ALIGN(sizeof(struct ipt_entry)) +
 					target_size + match_size;
 
 	match_size = 0;
@@ -1600,7 +1596,7 @@ static struct xtables_target *prepare_target(struct connman_iptables *table,
 	if (!xt_t)
 		return NULL;
 
-	target_size = ALIGN(sizeof(struct ipt_entry_target)) + xt_t->size;
+	target_size = XT_ALIGN(sizeof(struct ipt_entry_target)) + xt_t->size;
 
 	xt_t->t = g_try_malloc0(target_size);
 	if (!xt_t->t)
@@ -1663,7 +1659,7 @@ static struct xtables_match *prepare_matches(struct connman_iptables *table,
 		return NULL;
 
 	xt_m = xtables_find_match(match_name, XTF_LOAD_MUST_SUCCEED, xt_rm);
-	match_size = ALIGN(sizeof(struct ipt_entry_match)) + xt_m->size;
+	match_size = XT_ALIGN(sizeof(struct ipt_entry_match)) + xt_m->size;
 
 	xt_m->m = g_try_malloc0(match_size);
 	if (!xt_m->m)
