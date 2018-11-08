@@ -918,35 +918,47 @@ int __connman_stats_get(struct connman_service *service,
 				bool roaming,
 				struct connman_stats_data *data);
 
-int __connman_iptables_dump(const char *table_name);
-int __connman_iptables_new_chain(const char *table_name,
-					const char *chain);
-int __connman_iptables_delete_chain(const char *table_name,
-					const char *chain);
-int __connman_iptables_flush_chain(const char *table_name,
-					const char *chain);
-int __connman_iptables_change_policy(const char *table_name,
-					const char *chain,
-					const char *policy);
-int __connman_iptables_append(const char *table_name,
-			const char *chain,
-			const char *rule_spec);
-int __connman_iptables_insert(const char *table_name,
-			const char *chain,
-			const char *rule_spec);
-int __connman_iptables_delete(const char *table_name,
-			const char *chain,
-			const char *rule_spec);
+int __connman_iptables_dump(int type,
+				const char *table_name);
+int __connman_iptables_new_chain(int type,
+				const char *table_name,
+				const char *chain);
+int __connman_iptables_delete_chain(int type,
+				const char *table_name,
+				const char *chain);
+int __connman_iptables_flush_chain(int type,
+				const char *table_name,
+				const char *chain);
+int __connman_iptables_find_chain(int type,
+				const char *table_name,
+				const char *chain);
+int __connman_iptables_change_policy(int type,
+				const char *table_name,
+				const char *chain,
+				const char *policy);
+int __connman_iptables_append(int type,
+				const char *table_name,
+				const char *chain,
+				const char *rule_spec);
+int __connman_iptables_insert(int type,
+				const char *table_name,
+				const char *chain,
+				const char *rule_spec);
+int __connman_iptables_delete(int type,
+				const char *table_name,
+				const char *chain,
+				const char *rule_spec);
 
 typedef void (*connman_iptables_iterate_chains_cb_t) (const char *chain_name,
 							void *user_data);
-int __connman_iptables_iterate_chains(const char *table_name,
+int __connman_iptables_iterate_chains(int type,
+				const char *table_name,
 				connman_iptables_iterate_chains_cb_t cb,
 				void *user_data);
 
 int __connman_iptables_init(void);
 void __connman_iptables_cleanup(void);
-int __connman_iptables_commit(const char *table_name);
+int __connman_iptables_commit(int type, const char *table_name);
 
 int __connman_dnsproxy_init(void);
 void __connman_dnsproxy_cleanup(void);
