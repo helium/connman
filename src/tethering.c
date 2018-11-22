@@ -343,6 +343,21 @@ void __connman_tethering_set_disabled(void)
 	DBG("tethering stopped");
 }
 
+static void append_client(gpointer key, gpointer value,
+						gpointer user_data)
+{
+	const char *addr = key;
+	DBusMessageIter *array = user_data;
+
+	dbus_message_iter_append_basic(array, DBUS_TYPE_STRING,
+							&addr);
+}
+
+void __connman_tethering_list_clients(DBusMessageIter *array)
+{
+	g_hash_table_foreach(clients_table, append_client, array);
+}
+
 static void setup_tun_interface(unsigned int flags, unsigned change,
 		void *data)
 {

@@ -46,6 +46,11 @@ Methods		dict GetProperties()
 
 			Possible Errors: [service].Error.InvalidArguments
 
+		array{string} GetTetheringClients() [experimental]
+
+			Returns a sorted list of MAC addresses of clients
+			connected to tethered technologies.
+
 		object ConnectProvider(dict provider)	[deprecated]
 
 			Connect to a VPN specified by the given provider

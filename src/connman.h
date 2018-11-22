@@ -638,6 +638,7 @@ void __connman_tethering_cleanup(void);
 const char *__connman_tethering_get_bridge(void);
 int __connman_tethering_set_enabled(void);
 void __connman_tethering_set_disabled(void);
+void __connman_tethering_list_clients(DBusMessageIter *array);
 
 int __connman_private_network_request(DBusMessage *msg, const char *owner);
 int __connman_private_network_release(const char *path);
