@@ -352,6 +352,10 @@ struct _GSupplicantCallbacks {
 	void (*network_changed) (GSupplicantNetwork *network,
 					const char *property);
 	void (*network_associated) (GSupplicantNetwork *network);
+	void (*sta_authorized) (GSupplicantInterface *interface,
+					const char *addr);
+	void (*sta_deauthorized) (GSupplicantInterface *interface,
+					const char *addr);
 	void (*peer_found) (GSupplicantPeer *peer);
 	void (*peer_lost) (GSupplicantPeer *peer);
 	void (*peer_changed) (GSupplicantPeer *peer,

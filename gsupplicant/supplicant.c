@@ -614,6 +614,30 @@ static void callback_network_associated(GSupplicantNetwork *network)
 	callbacks_pointer->network_associated(network);
 }
 
+static void callback_sta_authorized(GSupplicantInterface *interface,
+					const char *addr)
+{
+	if (!callbacks_pointer)
+		return;
+
+	if (!callbacks_pointer->sta_authorized)
+		return;
+
+	callbacks_pointer->sta_authorized(interface, addr);
+}
+
+static void callback_sta_deauthorized(GSupplicantInterface *interface,
+					const char *addr)
+{
+	if (!callbacks_pointer)
+		return;
+
+	if (!callbacks_pointer->sta_deauthorized)
+		return;
+
+	callbacks_pointer->sta_deauthorized(interface, addr);
+}
+
 static void callback_peer_found(GSupplicantPeer *peer)
 {
 	if (!callbacks_pointer)
@@ -2731,6 +2755,42 @@ static void signal_network_removed(const char *path, DBusMessageIter *iter)
 	interface_network_removed(iter, interface);
 }
 
+static void signal_sta_authorized(const char *path, DBusMessageIter *iter)
+{
+	GSupplicantInterface *interface;
+	const char *addr = NULL;
+
+	SUPPLICANT_DBG("");
+
+	interface = g_hash_table_lookup(interface_table, path);
+	if (!interface)
+		return;
+
+	dbus_message_iter_get_basic(iter, &addr);
+	if (!addr)
+		return;
+
+	callback_sta_authorized(interface, addr);
+}
+
+static void signal_sta_deauthorized(const char *path, DBusMessageIter *iter)
+{
+	GSupplicantInterface *interface;
+	const char *addr = NULL;
+
+	SUPPLICANT_DBG("");
+
+	interface = g_hash_table_lookup(interface_table, path);
+	if (!interface)
+		return;
+
+	dbus_message_iter_get_basic(iter, &addr);
+	if (!addr)
+		return;
+
+	callback_sta_deauthorized(interface, addr);
+}
+
 static void signal_bss_changed(const char *path, DBusMessageIter *iter)
 {
 	GSupplicantInterface *interface;
@@ -3505,6 +3565,8 @@ static struct {
 	{ SUPPLICANT_INTERFACE ".Interface", "BSSRemoved",        signal_bss_removed       },
 	{ SUPPLICANT_INTERFACE ".Interface", "NetworkAdded",      signal_network_added     },
 	{ SUPPLICANT_INTERFACE ".Interface", "NetworkRemoved",    signal_network_removed   },
+	{ SUPPLICANT_INTERFACE ".Interface", "StaAuthorized",     signal_sta_authorized    },
+	{ SUPPLICANT_INTERFACE ".Interface", "StaDeauthorized",   signal_sta_deauthorized  },
 
 	{ SUPPLICANT_INTERFACE ".BSS", "PropertiesChanged", signal_bss_changed   },
 
