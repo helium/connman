@@ -12,7 +12,7 @@ include_HEADERS = include/log.h include/plugin.h \
 			include/storage.h include/provision.h \
 			include/session.h include/ipaddress.h include/agent.h \
 			include/inotify.h include/peer.h include/machine.h \
-			include/acd.h
+			include/acd.h include/tethering.h
 
 nodist_include_HEADERS = include/version.h
 

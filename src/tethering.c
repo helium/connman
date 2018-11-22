@@ -61,6 +61,8 @@ static struct connman_ippool *dhcp_ippool = NULL;
 static DBusConnection *connection;
 static GHashTable *pn_hash;
 
+static GHashTable *clients_table;
+
 struct connman_private_network {
 	char *owner;
 	char *path;
@@ -179,6 +181,18 @@ static void tethering_restart(struct connman_ippool *pool, void *user_data)
 	DBG("pool %p", pool);
 	__connman_tethering_set_disabled();
 	__connman_tethering_set_enabled();
+}
+
+static void unregister_client(gpointer key,
+					gpointer value, gpointer user_data)
+{
+	const char *addr = key;
+	__connman_tethering_client_unregister(addr);
+}
+
+static void unregister_all_clients(void)
+{
+	g_hash_table_foreach(clients_table, unregister_client, NULL);
 }
 
 int __connman_tethering_set_enabled(void)
@@ -300,6 +314,8 @@ void __connman_tethering_set_disabled(void)
 
 	if (__sync_fetch_and_sub(&tethering_enabled, 1) != 1)
 		return;
+
+	unregister_all_clients();
 
 	__connman_ipv6pd_cleanup();
 
@@ -529,6 +545,16 @@ int __connman_private_network_release(const char *path)
 	return 0;
 }
 
+void __connman_tethering_client_register(const char *addr)
+{
+	g_hash_table_insert(clients_table, g_strdup(addr), NULL);
+}
+
+void __connman_tethering_client_unregister(const char *addr)
+{
+	g_hash_table_remove(clients_table, addr);
+}
+
 int __connman_tethering_init(void)
 {
 	DBG("");
@@ -542,6 +568,8 @@ int __connman_tethering_init(void)
 	pn_hash = g_hash_table_new_full(g_str_hash, g_str_equal,
 						NULL, remove_private_network);
 
+	clients_table = g_hash_table_new_full(g_str_hash, g_str_equal,
+							g_free, NULL);
 	return 0;
 }
 
@@ -562,5 +590,9 @@ void __connman_tethering_cleanup(void)
 		return;
 
 	g_hash_table_destroy(pn_hash);
+
+	g_hash_table_destroy(clients_table);
+	clients_table = NULL;
+
 	dbus_connection_unref(connection);
 }
