@@ -260,6 +260,13 @@ Signals		TechnologyAdded(object path, dict properties)
 			object changes. For that it is required to watch the
 			PropertyChanged signal of the peer object.
 
+		TetheringClientsChanged(array{string}, array{string}) [experimental]
+
+			This signal indicates a change in the tethering clients.
+			List of all tethering clients currently registered connman is
+			passed via the first array. And a list of tethering clients that
+			have been removed via the second array.
+
 		PropertyChanged(string name, variant value)
 
 			This signal indicates a changed value of the given
