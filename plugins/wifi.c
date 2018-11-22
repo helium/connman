@@ -55,6 +55,7 @@
 #include <connman/provision.h>
 #include <connman/utsname.h>
 #include <connman/machine.h>
+#include <connman/tethering.h>
 
 #include <gsupplicant/gsupplicant.h>
 
@@ -2985,6 +2986,32 @@ static void network_associated(GSupplicantNetwork *network)
 	interface_state(interface);
 }
 
+static void sta_authorized(GSupplicantInterface *interface,
+					const char *addr)
+{
+	struct wifi_data *wifi = g_supplicant_interface_get_data(interface);
+
+	DBG("wifi %p station %s authorized", wifi, addr);
+
+	if (!wifi || !wifi->tethering)
+		return;
+
+	__connman_tethering_client_register(addr);
+}
+
+static void sta_deauthorized(GSupplicantInterface *interface,
+					const char *addr)
+{
+	struct wifi_data *wifi = g_supplicant_interface_get_data(interface);
+
+	DBG("wifi %p station %s deauthorized", wifi, addr);
+
+	if (!wifi || !wifi->tethering)
+		return;
+
+	__connman_tethering_client_unregister(addr);
+}
+
 static void apply_peer_services(GSupplicantPeer *peer,
 				struct connman_peer *connman_peer)
 {
@@ -3205,6 +3232,8 @@ static const GSupplicantCallbacks callbacks = {
 	.network_removed	= network_removed,
 	.network_changed	= network_changed,
 	.network_associated	= network_associated,
+	.sta_authorized		= sta_authorized,
+	.sta_deauthorized	= sta_deauthorized,
 	.peer_found		= peer_found,
 	.peer_lost		= peer_lost,
 	.peer_changed		= peer_changed,
