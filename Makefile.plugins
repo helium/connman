@@ -53,6 +53,11 @@ builtin_modules += ofono
 builtin_sources += plugins/mcc.h plugins/ofono.c
 endif
 
+if PPPD
+builtin_modules += pppd
+builtin_sources += plugins/pppd.c
+endif
+
 if DUNDEE
 builtin_modules += dundee
 builtin_sources += plugins/dundee.c

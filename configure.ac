@@ -358,6 +358,11 @@ AC_ARG_ENABLE(ofono, AC_HELP_STRING([--disable-ofono],
 					[enable_ofono=${enableval}])
 AM_CONDITIONAL(OFONO, test "${enable_ofono}" != "no")
 
+AC_ARG_ENABLE(pppd, AC_HELP_STRING([--disable-pppd],
+				[disable pppd support]),
+					[enable_pppd=${enableval}])
+AM_CONDITIONAL(PPPD, test "${enable_pppd}" != "no")
+
 AC_ARG_ENABLE(dundee, AC_HELP_STRING([--disable-dundee],
 				[disable dundee support (Bluetooth DUN)]),
 					[enable_dundee=${enableval}])

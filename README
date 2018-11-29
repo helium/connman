@@ -26,6 +26,7 @@ Various plugins can be enabled for networking support:
 	- WiFi plugin with WEP40/WEP128 and WPA/WPA2 (personal and enterprise)
 	- Bluetooth plugin (using BlueZ)
 	- 2G/3G/4G plugin (using oFono)
+	- Cellular plugin (using pppd)
 
 Also plugins with additional features are available:
 	- Loopback interface setup
@@ -118,6 +119,19 @@ For a working system, certain configuration options need to be enabled:
 		running ofonod. That start of ofonod is automatically
 		detected and only a runtime dependency. It is not needed to
 		build ConnMan.
+
+	--disable-pppd
+
+		Disable support for cellular modems over serial
+
+		By default pppd support is built-in and enabled. This option
+		can be used to build a small daemon for a specific system
+		where pppd is not used.
+
+		It is safe to build a daemon with pppd support and no
+		running pppd. That start of pppd is automatically detected
+		and only a runtime dependency. It is not needed to build
+		ConnMan.
 
 	--disable-dundee
 
