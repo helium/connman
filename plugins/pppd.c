@@ -306,5 +306,5 @@ static void pppd_exit(void)
 	connman_device_driver_unregister(&modem_dev_driver);
 }
 
-CONNMAN_PLUGIN_DEFINE(ofono, "pppd telephony plugin", VERSION,
+CONNMAN_PLUGIN_DEFINE(pppd, "pppd telephony plugin", VERSION,
 		CONNMAN_PLUGIN_PRIORITY_DEFAULT, pppd_init, pppd_exit)
