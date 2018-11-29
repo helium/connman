@@ -165,6 +165,9 @@ static void read_uevent(struct interface_data *interface)
 		} else if (strcmp(line + 8, "wwan") == 0) {
 			interface->service_type = CONNMAN_SERVICE_TYPE_CELLULAR;
 			interface->device_type = CONNMAN_DEVICE_TYPE_CELLULAR;
+		} else if (strcmp(line + 8, "ppp") == 0) {
+			interface->service_type = CONNMAN_SERVICE_TYPE_CELLULAR;
+			interface->device_type = CONNMAN_DEVICE_TYPE_CELLULAR;
 		} else if (strcmp(line + 8, "bluetooth") == 0) {
 			interface->service_type = CONNMAN_SERVICE_TYPE_BLUETOOTH;
 			interface->device_type = CONNMAN_DEVICE_TYPE_BLUETOOTH;
@@ -470,7 +473,7 @@ static void process_newlink(unsigned short type, int index, unsigned flags,
 		g_hash_table_insert(interface_list,
 					GINT_TO_POINTER(index), interface);
 
-		if (type == ARPHRD_ETHER)
+		if (type == ARPHRD_ETHER || type == ARPHRD_PPP)
 			read_uevent(interface);
 	} else if (type == ARPHRD_ETHER && interface->device_type == CONNMAN_DEVICE_TYPE_UNKNOWN)
 		read_uevent(interface);

@@ -1273,11 +1273,11 @@ struct connman_device *connman_device_create_from_index(int index)
 	case CONNMAN_DEVICE_TYPE_ETHERNET:
 	case CONNMAN_DEVICE_TYPE_GADGET:
 	case CONNMAN_DEVICE_TYPE_WIFI:
+	case CONNMAN_DEVICE_TYPE_CELLULAR:
 		name = index2ident(index, "");
 		addr = index2addr(index);
 		break;
 	case CONNMAN_DEVICE_TYPE_BLUETOOTH:
-	case CONNMAN_DEVICE_TYPE_CELLULAR:
 	case CONNMAN_DEVICE_TYPE_GPS:
 	case CONNMAN_DEVICE_TYPE_VENDOR:
 		name = g_strdup(devname);
