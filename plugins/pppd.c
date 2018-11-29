@@ -124,7 +124,7 @@ static void add_network(struct connman_device *device,
 		return;
 	}
 
-	connman_network_set_group(network, group);
+	connman_network_set_group(network, "modem");
 	connman_network_set_ipv4_method(network, CONNMAN_IPCONFIG_METHOD_DHCP);
 	connman_network_set_index(network, index);
 	connman_network_set_connected(network, true);
